@@ -11,12 +11,13 @@ public:
     ~LaserScanToPointCloud() {}
 
     void init() {
+        ros::NodeHandle p_nh_("~");
         std::string point_cloud_topic, laser_scan_topic;
-        nh_.getParam("base_frame", base_frame_);
-        nh_.getParam("laser_scan_topic", laser_scan_topic);
-        nh_.getParam("point_cloud_topic", point_cloud_topic);
-        point_cloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2>(point_cloud_topic, 10);
+        p_nh_.getParam("base_frame", base_frame_);
+        p_nh_.getParam("laser_scan_topic", laser_scan_topic);
+        p_nh_.getParam("point_cloud_topic", point_cloud_topic);
         laser_scan_sub_ = nh_.subscribe(laser_scan_topic, 10, &LaserScanToPointCloud::scanCallback, this);
+        point_cloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2>(point_cloud_topic, 10);        
     }
 
 private:
