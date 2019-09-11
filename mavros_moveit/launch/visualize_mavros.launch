@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<launch>
+  <arg name="rvizconfig" default="$(find mavros)/rviz/iris.rviz" />
+  <arg name="namespace" default="mavros" />
+  <param name="robot_description" command="$(find xacro)/xacro '$(find rotors_description)/urdf/iris.xacro'" />
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher">
+  	<param name="gui" value="false"/>
+  </node>
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+  	<param name="gui" value="false"/>
+  </node>
+</launch>
