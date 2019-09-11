@@ -15,28 +15,28 @@ Moveit controller manager and configuration for integration with Mavros.
 
 - Install moveit dependencies for given ROS distribution:
 
-'''
+```
 sudo apt-get install ros-<ros-distro>-moveit-*
-'''
+```
 
 ### Installation
 
 - Make a local cakin workspace:
-'''
+```
 mkdir -p ~/catkin_ws/src
-'''
+```
 - Clone the repository to your workspace:
-'''
+```
 cd ~/catkin_ws/src
 git clone https://github.com/saifullah3396/mavros-moveit.git
-'''
+```
 - Build and source the workspace:
-'''
+```
 cd ~/catkin_ws
 catkin_make
 source ~/catkin_ws/devel/setup.bash
-'''
+```
 - Run px4 and mavros along with moveit using the launch file. The example uses iris but can be updated for use with other vehicles:
-'''
+```
 roslaunch mavros_moveit px4_iris_moveit.launch
-'''
+```
