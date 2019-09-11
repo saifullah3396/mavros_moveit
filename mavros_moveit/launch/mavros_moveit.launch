@@ -14,8 +14,9 @@
     <param name="use_gui" value="false"/>
   </node>
 
+  <arg name="px4_start_delay" default="5.0" />  
   <!-- Turn off failsafes for simulations -->
-  <node name="initialize_px4_params" pkg="mavros_moveit" type="initialize_px4_params" />
+  <node name="initialize_px4_params" pkg="mavros_moveit" type="initialize_px4_params" launch-prefix="bash -c 'sleep $(arg px4_start_delay); $0 $@'"/>
 
   <!-- Start the moveit move group -->
   <include file="$(find mavros_moveit_config)/launch/move_group.launch">
