@@ -1,6 +1,4 @@
 <launch>
-  <node pkg="tf2_ros" type="static_transform_publisher" name="rplidar_link_broadcaster_0" args="0 0 0.1 0 0 0 base_link /rplidar_link" />
-
   <!-- Arguments -->
   <arg name="set_base_frame" default="base_link"/>
   <arg name="set_odom_frame" default="odom"/>
