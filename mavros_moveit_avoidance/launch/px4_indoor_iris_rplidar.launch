@@ -11,4 +11,11 @@
     </include>
 
     <node pkg="tf2_ros" type="static_transform_publisher" name="rplidar_link_broadcaster_0" args="0 0 0.1 0 0 0 base_link /rplidar_link" />
+
+    <!-- Start gmapping for map creation -->
+    <!--<include file="$(find mavros_moveit_avoidance)/launch/mavros_gmapping.launch"/>-->
+    <node name="launch_gmapping" pkg="mavros_moveit_avoidance" type="launch_gmapping"/>
+
+    <!-- Start laser scan to point cloud generation -->
+    <include file="$(find mavros_moveit_avoidance)/launch/laser_to_pc.launch"/>
 </launch>
