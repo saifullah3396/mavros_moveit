@@ -5,7 +5,15 @@
   <arg name="debug" default="false" />
   <arg name="rvizconfig" default="$(find mavros_moveit)/rviz/moveit.rviz" />
   <arg name="namespace" default="mavros" />
-  <param name="robot_description" command="$(find xacro)/xacro '$(find rotors_description)/urdf/iris.xacro'" />
+  <arg name="rotors_description_dir" default="$(find px4)/Tools/sitl_gazebo/models/rotors_description" />
+  <arg name="visual_material" default="DarkGrey" />
+  <param name="robot_description" 
+    command="$(find xacro)/xacro 
+      $(arg rotors_description_dir)/urdf/iris.xacro 
+      rotors_description_dir:=$(arg rotors_description_dir) 
+      visual_material:=$(arg visual_material)
+      --inorder" 
+  />
   <param name="use_gui" value="$(arg gui)"/>
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher">
     <param name="use_gui" value="false"/>
@@ -14,7 +22,7 @@
     <param name="use_gui" value="false"/>
   </node>
 
-  <arg name="px4_start_delay" default="5.0" />  
+  <arg name="px4_start_delay" default="20.0" />  
   <!-- Turn off failsafes for simulations -->
   <node name="initialize_px4_params" pkg="mavros_moveit" type="initialize_px4_params" launch-prefix="bash -c 'sleep $(arg px4_start_delay); $0 $@'"/>
 

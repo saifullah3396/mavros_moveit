@@ -35,8 +35,3 @@ catkin_package(
 include_directories(${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 add_executable(follow_multi_dof_joint_trajectory_action_server src/follow_multi_dof_joint_trajectory_action_server.cpp)
 target_link_libraries(follow_multi_dof_joint_trajectory_action_server ${catkin_LIBRARIES})
-
-add_dependencies(
-  follow_multi_dof_joint_trajectory_action_server
-  ${mavros_moveit_actions_EXPORTED_TARGETS} mavros_msgs_generate_messages 
-)
