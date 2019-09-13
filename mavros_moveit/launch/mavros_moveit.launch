@@ -35,7 +35,10 @@
   </include>
 
   <!-- Start the moveit action controller -->
-  <node name="follow_multi_dof_joint_trajectory_action_server" pkg="mavros_moveit_actions" type="follow_multi_dof_joint_trajectory_action_server" output="screen"/>
+  <node name="follow_multi_dof_joint_trajectory_action_server" pkg="mavros_moveit_actions" type="follow_multi_dof_joint_trajectory_action_server" output="screen">
+    <param name="rate" value="100"/>
+    <param name="control_mode" value="velocity"/>
+  </node>
 
   <!-- Start RVIZ Visualisation -->
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
