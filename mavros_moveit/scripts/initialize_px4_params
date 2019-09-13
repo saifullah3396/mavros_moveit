@@ -10,4 +10,15 @@ rosservice call --wait /mavros/param/set "param_id: 'NAV_DLL_ACT'
 value:
   integer: 0
   real: 0.0" 
-#exec "$@"
+
+# Set mode to hold if offboard is lost
+rosservice call --wait /mavros/param/set "param_id: 'COM_OBL_ACT'
+value:
+  integer: 1
+  real: 0.0"
+
+# Set mode to hold if offboard is lost
+rosservice call --wait /mavros/param/set "param_id: 'MAV_0_RATE'
+value:
+  integer: 115200
+  real: 0.0"
