@@ -122,7 +122,7 @@ public:
             geometry_msgs::PoseStamped cmd_pose;
             for (const auto& p : trajectory.points) {
                 if(action_server_.isPreemptRequested() || !ros::ok()){
-                    ROS_INFO("Preempt requested");
+                    action_server_.setPreempted();
                     success = false;
                     break;
                 }
@@ -142,6 +142,11 @@ public:
             tf::poseMsgToTF(cmd_pose.pose, tf_target);
             while (!targetReached(tf_target))
             {
+                if(action_server_.isPreemptRequested() || !ros::ok()){
+                    action_server_.setPreempted();
+                    success = false;
+                    break;
+                }
                 local_pose_pub_.publish(cmd_pose);
                 action_server_.publishFeedback(feedback_);
                 feedback_.current_pose = cmd_pose;
@@ -150,6 +155,7 @@ public:
             }
         } else {
             ROS_WARN("Mavros not connected to FCU.");
+            action_server_.setAborted();
             success = false;
         }
 
