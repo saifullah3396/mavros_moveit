@@ -1,0 +1,16 @@
+<launch>
+    <arg name="world" default="$(find px4)/Tools/sitl_gazebo/worlds/small_indoor_scenario.world" />
+    <arg name="gui" default="false"/>
+    <arg name="vehicle" default="iris_depth_camera"/>
+
+    <!-- Launch PX4 Moveit -->
+    <include file="$(find mavros_moveit)/launch/px4_moveit.launch">
+        <arg name="gui" value="$(arg gui)"/>
+        <arg name="world" value="$(arg world)" />
+        <arg name="vehicle" value="$(arg vehicle)"/>
+    </include>
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="camera_link_broadcaster_0" args="0 0 0 -1.57 0 -1.57 base_link /camera_link" />
+
+    <!--<remap from="/camera/depth/image_raw" to="/camera/depth_registered/image_raw"/>-->
+</launch>
