@@ -4,10 +4,9 @@
   <arg name="set_odom_frame" default="odom"/>
   <arg name="set_map_frame"  default="map"/>
 
-  <remap from="/scan" to="/laser/scan"/>
-
   <!-- Gmapping -->
   <node pkg="gmapping" type="slam_gmapping" name="mavros_slam_gmapping">
+    <remap from="/laser/scan" to="/scan"/>
     <param name="base_frame" value="$(arg set_base_frame)"/>
     <param name="odom_frame" value="$(arg set_odom_frame)"/>
     <param name="map_frame"  value="$(arg set_map_frame)"/>
@@ -28,9 +27,9 @@
     <param name="stt" value="0.2"/>
     <param name="linearUpdate" value="1.0"/>
     <param name="angularUpdate" value="0.2"/>
-    <param name="temporalUpdate" value="0.1"/>
+    <param name="temporalUpdate" value="1.0"/>
     <param name="resampleThreshold" value="0.1"/>
-    <param name="particles" value="100"/>
+    <param name="particles" value="10"/>
     <param name="xmin" value="-10.0"/>
     <param name="ymin" value="-10.0"/>
     <param name="xmax" value="10.0"/>
