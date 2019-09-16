@@ -8,9 +8,44 @@
         <arg name="gui" value="$(arg gui)"/>
         <arg name="world" value="$(arg world)" />
         <arg name="vehicle" value="$(arg vehicle)"/>
+        <arg name="x" value="0.0"/>
+        <arg name="y" value="0.0"/>
+        <arg name="z" value="0.1"/>
     </include>
 
-    <node pkg="tf2_ros" type="static_transform_publisher" name="camera_link_broadcaster_0" args="0 0 0 -1.57 0 -1.57 base_link /camera_link" />
+    <node pkg="tf" type="static_transform_publisher" name="camera_link_broadcaster_0" args="0 0 0 -1.57 0 -1.57 base_link /camera_link 10" />
+    <!--<node pkg="tf" type="static_transform_publisher" name="laser_link_broadcaster_0" args="0 0 -0.1 0 0 0 base_link iris_depth_camera/distance_sensor::laser_link 10" />-->
+    
+    <node pkg="depthimage_to_laserscan" type="depthimage_to_laserscan" name="depthimage_to_laserscan">
+        <param name="output_frame_id" value="base_link" />
+        <remap from="image" to="/camera/depth/image_raw" />
+        <!--<remap from="scan" to="/camera/scan" />-->
+    </node>
+
+    <!-- Start gmapping for map creation -->
+    <!--<include file="$(find mavros_moveit_avoidance)/launch/mavros_gmapping.launch"/>-->
+    <node name="launch_gmapping" pkg="mavros_moveit_avoidance" type="launch_gmapping"/>
+
+    <!-- OctoMap Server -->
+    <!--<arg name="frame_id" default="map"/>
+    <arg name="point_cloud_topic" default="/camera/depth/points"/>
+    <node pkg="octomap_server" type="octomap_server_node" name="octomap_server">
+        <param name="resolution" value="0.1" />
+        <param name="frame_id" type="string" value="$(arg frame_id)" />
+        <param name="sensor_model/max_range" value="9.0" />
+        <param name="sensor_model/min" value="0.01" />
+        <param name="sensor_model/max" value="0.99" />
+        <param name="sensor_model/hit" value="0.9" />
+        <param name="sensor_model/miss" value="0.45" />
+        <param name="color/r" value="0.1" />
+        <param name="color/g" value="0.1" />
+        <param name="color/b" value="0.1" />
+        <param name="color/a" value="1.0" />
+        <param name="occupancy_min_z" value="1.0" />
+        <param name="height_map" value="false" />
+        <param name="publish_free_space" value="false" />
+        <remap from="cloud_in" to="$(arg point_cloud_topic)" />
+    </node>-->
 
     <!--<remap from="/camera/depth/image_raw" to="/camera/depth_registered/image_raw"/>-->
 </launch>
