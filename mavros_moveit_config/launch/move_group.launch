@@ -21,6 +21,11 @@
 
   <arg name="capabilities" default=""/>
   <arg name="disable_capabilities" default=""/>
+
+  <!-- octomap settings -->
+  <arg name="octomap_frame" default="map" />
+  <arg name="octomap_resolution" default="0.1" />
+  <arg name="octomap_max_range" default="5.0" />
   <!-- load these non-default MoveGroup capabilities (space seperated) -->
   <!--
   <arg name="capabilities" value="
@@ -58,6 +63,9 @@
   <!-- Sensors Functionality -->
   <include ns="move_group" file="$(find mavros_moveit_config)/launch/sensor_manager.launch.xml" if="$(arg allow_trajectory_execution)">
     <arg name="moveit_sensor_manager" value="iris" />
+    <arg name="octomap_frame" value="$(arg octomap_frame)" />
+    <arg name="octomap_resolution" value="$(arg octomap_resolution)" />
+    <arg name="octomap_max_range" value="$(arg octomap_max_range)" />
   </include>
 
   <!-- Start the actual move_group node/action server -->
