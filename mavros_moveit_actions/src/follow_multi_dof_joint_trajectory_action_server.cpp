@@ -228,11 +228,13 @@ public:
             offb_set_mode.request.custom_mode = mode;
             if (set_mode_client_.call(offb_set_mode) && offb_set_mode.response.mode_sent) {
                 ROS_INFO("Mode %s enabled.", mode.c_str());
+                return true;
             } else {
                 ROS_WARN("Mode %s could not be enabled. Cannot execute moveit trajectory.", mode.c_str());
                 return false;
             }
         }
+        return true;
     }
 
     bool setArmRequest(const bool& arm) {
@@ -244,11 +246,13 @@ public:
                     ros::spinOnce();
                     rate_.sleep();
                 }
+                return true;
             } else {
                 ROS_WARN("Vehicle arm/disarm request failed. Cannot execute moveit trajectory.");
                 return false;
             }
         }
+        return true;
     }
 
     void stateCb(const mavros_msgs::State::ConstPtr& msg) {
