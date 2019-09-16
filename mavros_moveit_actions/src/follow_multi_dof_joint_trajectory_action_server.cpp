@@ -154,9 +154,6 @@ public:
             tf::poseMsgToTF(cmd_pose.pose, tf_target);
             while (!targetReached(tf_target))
             {
-<<<<<<< Updated upstream
-                local_pose_pub_.publish(cmd_pose);
-=======
                 if(action_server_.isPreemptRequested() || !ros::ok()){
                     action_server_.setPreempted();
                     success = false;
@@ -166,7 +163,6 @@ public:
                     local_pose_pub_.publish(cmd_pose);
                 else if (control_mode_ == ControlMode::VELOCITY)
                     generateVelocityCommand(cmd_pose.pose);
->>>>>>> Stashed changes
                 action_server_.publishFeedback(feedback_);
                 feedback_.current_pose = cmd_pose;
                 ros::spinOnce();
