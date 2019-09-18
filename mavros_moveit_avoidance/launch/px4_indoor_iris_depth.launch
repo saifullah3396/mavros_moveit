@@ -19,7 +19,7 @@
     <node pkg="depthimage_to_laserscan" type="depthimage_to_laserscan" name="depthimage_to_laserscan">
         <param name="output_frame_id" value="base_link" />
         <remap from="image" to="/camera/depth/image_raw" />
-        <!--<remap from="scan" to="/camera/scan" />-->
+        <remap from="scan" to="/laser/scan" />
     </node>
 
     <!-- Start gmapping for map creation -->
