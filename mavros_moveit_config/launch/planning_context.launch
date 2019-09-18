@@ -23,6 +23,7 @@
 
   <!-- Load updated joint limits (override information from URDF) -->
   <group ns="$(arg robot_description)_planning">
+    <param name="shape_transform_cache_lookup_wait_time" value="0.1" />
     <rosparam command="load" file="$(find mavros_moveit_config)/config/joint_limits.yaml"/>
   </group>
 
