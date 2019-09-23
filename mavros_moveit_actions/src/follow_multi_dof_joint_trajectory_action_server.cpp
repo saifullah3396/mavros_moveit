@@ -42,6 +42,7 @@
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
+#include <mavros_msgs/PositionTarget.h>
 #include <ros/ros.h>
 #include <tf/tf.h>
 #include <string>
@@ -78,7 +79,7 @@ public:
         state_sub_ = nh_.subscribe<mavros_msgs::State>("mavros/state", 10, &FollowMultiDofJointTrajectoryAction::stateCb, this);
         local_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>("mavros/local_position/pose", 10, &FollowMultiDofJointTrajectoryAction::poseCb, this);
         if (control_mode_ == ControlMode::POSITION)
-            local_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_position/local", 10);
+            local_pose_pub_ = nh_.advertise<mavros_msgs::PositionTarget>("mavros/setpoint_raw/local", 10);
         else if (control_mode_ == ControlMode::VELOCITY)
             local_vel_pub_ = nh_.advertise<geometry_msgs::TwistStamped>("mavros/setpoint_velocity/cmd_vel", 10);
         arming_client_ = nh_.serviceClient<mavros_msgs::CommandBool>("mavros/cmd/arming");
@@ -106,9 +107,16 @@ public:
             executing = true;
 
             //send a few setpoints before starting
+            mavros_msgs::PositionTarget target;
+            target.position = current_pose_.pose.position;
+            tf::Quaternion q;
+            tf::quaternionMsgToTF(current_pose_.pose.orientation, q);
+            double roll, pitch, yaw;
+            tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
+            target.yaw = yaw;
             for(int i = 1; ros::ok() && i > 0; --i) {
                 if (control_mode_ == ControlMode::POSITION) {
-                    local_pose_pub_.publish(current_pose_);
+                    local_pose_pub_.publish(target);
                 } else if (control_mode_ == ControlMode::VELOCITY) {
                     geometry_msgs::TwistStamped vel_msg;
                     local_vel_pub_.publish(vel_msg);
@@ -139,9 +147,16 @@ public:
                 cmd_pose.pose.position.z = trans.translation.z;
                 cmd_pose.pose.orientation = trans.rotation;
                 feedback_.current_pose = cmd_pose;
+                mavros_msgs::PositionTarget target;
+                target.position = cmd_pose.pose.position;
+                tf::Quaternion q;
+                tf::quaternionMsgToTF(cmd_pose.pose.orientation, q);
+                double roll, pitch, yaw;
+                tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
+                target.yaw = yaw;
                 if (control_mode_ == ControlMode::POSITION) {
                     cmd_pose.header.stamp = ros::Time::now();
-                    local_pose_pub_.publish(cmd_pose);
+                    local_pose_pub_.publish(target);
                 } else if (control_mode_ == ControlMode::VELOCITY) {
                     generateVelocityCommand(cmd_pose.pose);
                 }
@@ -152,22 +167,30 @@ public:
 
             tf::Pose tf_target;
             tf::poseMsgToTF(cmd_pose.pose, tf_target);
-            while (!targetReached(tf_target))
+            /*while (!targetReached(tf_target))
             {
                 if(action_server_.isPreemptRequested() || !ros::ok()){
                     action_server_.setPreempted();
                     success = false;
                     break;
                 }
-                if (control_mode_ == ControlMode::POSITION)
-                    local_pose_pub_.publish(cmd_pose);
-                else if (control_mode_ == ControlMode::VELOCITY)
+                if (control_mode_ == ControlMode::POSITION) {
+                    mavros_msgs::PositionTarget target;
+                    target.position = cmd_pose.pose.position;
+                    tf::Quaternion q;
+                    tf::quaternionMsgToTF(cmd_pose.pose.orientation, q);
+                    double roll, pitch, yaw;
+                    tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
+                    target.yaw = yaw;
+                    local_pose_pub_.publish(target);
+                } else if (control_mode_ == ControlMode::VELOCITY) {
                     generateVelocityCommand(cmd_pose.pose);
+                }
                 action_server_.publishFeedback(feedback_);
                 feedback_.current_pose = cmd_pose;
                 ros::spinOnce();
                 rate_.sleep();
-            }
+            }*/
         } else {
             ROS_WARN("Mavros not connected to FCU.");
             action_server_.setAborted();
