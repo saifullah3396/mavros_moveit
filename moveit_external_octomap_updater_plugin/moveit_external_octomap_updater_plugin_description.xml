@@ -1,0 +1,10 @@
+<library path="lib/libmoveit_external_octomap_updater">
+
+  <class  name="occupancy_map_monitor/MoveItExternalOctomapUpdater"
+          type="occupancy_map_monitor::ExternalOctomapUpdater"
+          base_class_type="occupancy_map_monitor::OccupancyMapUpdater">
+    <description>
+    </description>
+  </class>
+
+</library>
