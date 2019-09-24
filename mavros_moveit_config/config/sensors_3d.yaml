@@ -1,21 +1,23 @@
 # The name of this file shouldn't be changed, or else the Setup Assistant won't detect it
 sensors:
-  - sensor_plugin: occupancy_map_monitor/PointCloudOctomapUpdater
-    point_cloud_topic: /laser/point_cloud
-    max_range: 5.0
-    point_subsample: 1
-    padding_offset: 0.1
-    padding_scale: 1.0
-    max_update_rate: 1.0
-    filtered_cloud_topic: lidar_point_cloud
-  - sensor_plugin: occupancy_map_monitor/PointCloudOctomapUpdater
-    point_cloud_topic: /camera/depth/points
-    max_range: 5.0
-    point_subsample: 1
-    padding_offset: 0.1
-    padding_scale: 1.0
-    max_update_rate: 1.0
-    filtered_cloud_topic: camera_point_cloud
+ - sensor_plugin: occupancy_map_monitor/MoveItExternalOctomapUpdater
+   octomap_topic: /octomap_binary
+#  - sensor_plugin: occupancy_map_monitor/PointCloudOctomapUpdater
+#    point_cloud_topic: /laser/point_cloud
+#    max_range: 5.0
+#    point_subsample: 1
+#    padding_offset: 0.1
+#    padding_scale: 1.0
+#    max_update_rate: 5.0
+#    filtered_cloud_topic: lidar_point_cloud
+#  - sensor_plugin: occupancy_map_monitor/PointCloudOctomapUpdater
+#    point_cloud_topic: /camera/depth/points
+#    max_range: 5.0
+#    point_subsample: 1
+#    padding_offset: 0.1
+#    padding_scale: 1.0
+#    max_update_rate: 5.0
+#   filtered_cloud_topic: camera_point_cloud
 #  - sensor_plugin: occupancy_map_monitor/DepthImageOctomapUpdater
 #    image_topic: /camera/depth/image_raw
 #    queue_size: 5
