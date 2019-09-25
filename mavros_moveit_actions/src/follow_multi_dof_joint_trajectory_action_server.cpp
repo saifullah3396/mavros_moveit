@@ -39,6 +39,7 @@
 #include <actionlib/client/simple_action_client.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <mavros_moveit_actions/FollowMultiDofJointTrajectoryAction.h>
+#include <mavros_moveit_actions/spline_interpolation.h>
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
@@ -130,6 +131,8 @@ public:
                 action_server_.setAborted();
 
             auto& trajectory = goal->trajectory;
+            auto spline_interpolation = generateInterpolation(trajectory);
+
             geometry_msgs::PoseStamped cmd_pose;
             for (const auto& p : trajectory.points) {
                 if(action_server_.isPreemptRequested() || !ros::ok()){
@@ -189,6 +192,28 @@ public:
             return true;
         }
         return false;
+    }
+
+    CartesianInterpolation<double, 3> generateInterpolation(
+        const trajectory_msgs::MultiDOFJointTrajectory& trajectory)
+    {
+        auto size = trajectory.points.size() + 1;
+        Eigen::Matrix<double, Eigen::Dynamic, 3> positions(size);
+        std::vector<Eigen::Quaternion<double> > orientations(size);
+        Eigen::Matrix<double, Eigen::Dynamic, 1> knots(size);
+        knots[0] = 0.0;
+        auto& trans = current_pose_.pose.position;
+        auto& rot = current_pose_.pose.orientation;
+        positions.row(0) << trans.x, trans.y, trans.z;
+        orientations[0] = Eigen::Quaternion<double>(rot.w, rot.x, rot.y, rot.z);
+        for (int i = 1; i < size; ++i) {
+            auto& trans = trajectory.points[i].transforms[0].translation;
+            auto& rot = trajectory.points[i].transforms[0].rotation;
+            positions.row(i) << trans.x, trans.y, trans.z;
+            orientations[i] = Eigen::Quaternion<double>(rot.w, rot.x, rot.y, rot.z);
+            knots[i] = trajectory.points[i].time_from_start.sec;
+        }
+        return CartesianInterpolation<double, 3>(positions, orientations, knots);
     }
 
     void generateVelocityCommand(const geometry_msgs::Pose& cmd_pose) {
