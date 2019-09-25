@@ -64,7 +64,7 @@ public:
         ros::NodeHandle nh("~");
         // setpoint publishing rate MUST be faster than 2Hz. From mavros documentation
         double rate;
-		nh.param("rate", rate, 20.0);
+		nh.param("rate", rate, 100.0);
         rate_ = ros::Rate(rate);
 
         // set control mode
@@ -109,11 +109,7 @@ public:
             //send a few setpoints before starting
             mavros_msgs::PositionTarget target;
             target.position = current_pose_.pose.position;
-            tf::Quaternion q;
-            tf::quaternionMsgToTF(current_pose_.pose.orientation, q);
-            double roll, pitch, yaw;
-            tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
-            target.yaw = yaw;
+            target.yaw = getYaw(current_pose_.pose.orientation);
             for(int i = 1; ros::ok() && i > 0; --i) {
                 if (control_mode_ == ControlMode::POSITION) {
                     local_pose_pub_.publish(target);
@@ -133,7 +129,7 @@ public:
             if (!setMavMode("OFFBOARD"))
                 action_server_.setAborted();
 
-            auto trajectory = goal->trajectory;
+            auto& trajectory = goal->trajectory;
             geometry_msgs::PoseStamped cmd_pose;
             for (const auto& p : trajectory.points) {
                 if(action_server_.isPreemptRequested() || !ros::ok()){
@@ -141,6 +137,7 @@ public:
                     success = false;
                     break;
                 }
+                ROS_INFO_STREAM("Trajectory time:" << p.time_from_start);
                 const geometry_msgs::Transform& trans = p.transforms[0]; // only single virtual joint exists
                 cmd_pose.pose.position.x = trans.translation.x;
                 cmd_pose.pose.position.y = trans.translation.y;
@@ -149,11 +146,7 @@ public:
                 feedback_.current_pose = cmd_pose;
                 mavros_msgs::PositionTarget target;
                 target.position = cmd_pose.pose.position;
-                tf::Quaternion q;
-                tf::quaternionMsgToTF(cmd_pose.pose.orientation, q);
-                double roll, pitch, yaw;
-                tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
-                target.yaw = yaw;
+                target.yaw = getYaw(cmd_pose.pose.orientation);
                 if (control_mode_ == ControlMode::POSITION) {
                     cmd_pose.header.stamp = ros::Time::now();
                     local_pose_pub_.publish(target);
@@ -164,33 +157,6 @@ public:
                 ros::spinOnce();
                 rate_.sleep();
             }
-
-            tf::Pose tf_target;
-            tf::poseMsgToTF(cmd_pose.pose, tf_target);
-            /*while (!targetReached(tf_target))
-            {
-                if(action_server_.isPreemptRequested() || !ros::ok()){
-                    action_server_.setPreempted();
-                    success = false;
-                    break;
-                }
-                if (control_mode_ == ControlMode::POSITION) {
-                    mavros_msgs::PositionTarget target;
-                    target.position = cmd_pose.pose.position;
-                    tf::Quaternion q;
-                    tf::quaternionMsgToTF(cmd_pose.pose.orientation, q);
-                    double roll, pitch, yaw;
-                    tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
-                    target.yaw = yaw;
-                    local_pose_pub_.publish(target);
-                } else if (control_mode_ == ControlMode::VELOCITY) {
-                    generateVelocityCommand(cmd_pose.pose);
-                }
-                action_server_.publishFeedback(feedback_);
-                feedback_.current_pose = cmd_pose;
-                ros::spinOnce();
-                rate_.sleep();
-            }*/
         } else {
             ROS_WARN("Mavros not connected to FCU.");
             action_server_.setAborted();
@@ -214,9 +180,7 @@ public:
         tf::Pose tf_curr;
         tf::poseMsgToTF(current_pose_.pose, tf_curr);
         auto diff_t = tf_curr.inverseTimes(target);
-        double roll, pitch, yaw;
-        tf::Matrix3x3(diff_t.getRotation())
-            .getRPY(roll, pitch, yaw);
+        auto yaw = getYaw(diff_t.getRotation());
         if (fabsf(diff_t.getOrigin().x()) <= target_pos_tol && 
             fabsf(diff_t.getOrigin().y()) <= target_pos_tol &&
             fabsf(diff_t.getOrigin().z()) <= target_pos_tol &&
@@ -243,6 +207,20 @@ public:
         vel_msg.twist.angular.y = vel_msg.twist.angular.y;
         vel_msg.twist.angular.z = vel_msg.twist.angular.z;
         local_vel_pub_.publish(vel_msg);
+    }
+
+    double getYaw(const tf::Quaternion& q) const {
+        double roll, pitch, yaw;
+        tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
+        return yaw;
+    }
+
+    double getYaw(const geometry_msgs::Quaternion& q_msg) const {
+        tf::Quaternion q;
+        tf::quaternionMsgToTF(q_msg, q);
+        double roll, pitch, yaw;
+        tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
+        return yaw;
     }
 
     bool setMavMode(const std::string& mode) {
