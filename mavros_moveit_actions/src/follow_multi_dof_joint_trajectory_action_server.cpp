@@ -146,10 +146,10 @@ public:
                 cmd_pose.pose.position.x = interp_position[0];
                 cmd_pose.pose.position.y = interp_position[1];
                 cmd_pose.pose.position.z = interp_position[2];
-                cmd_pose.pose.orientation.w = interp_orientation.w;
-                cmd_pose.pose.orientation.x = interp_orientation.x;
-                cmd_pose.pose.orientation.y = interp_orientation.y;
-                cmd_pose.pose.orientation.z = interp_orientation.z;
+                cmd_pose.pose.orientation.w = interp_orientation.w();
+                cmd_pose.pose.orientation.x = interp_orientation.x();
+                cmd_pose.pose.orientation.y = interp_orientation.y();
+                cmd_pose.pose.orientation.z = interp_orientation.z();
                 if (control_mode_ == ControlMode::POSITION) {
                     cmd_pose.header.stamp = ros::Time::now();
                     local_pose_pub_.publish(target);
@@ -201,7 +201,7 @@ public:
         Eigen::Matrix<double, Eigen::Dynamic, 1>& knots)
     {
         auto size = trajectory.points.size() + 1;
-        Eigen::Matrix<double, Eigen::Dynamic, 3> positions(size);
+        Eigen::Matrix<double, Eigen::Dynamic, 3> positions(size, 3);
         std::vector<Eigen::Quaternion<double> > orientations(size);
         knots.resize(size);
         knots[0] = 0.0;

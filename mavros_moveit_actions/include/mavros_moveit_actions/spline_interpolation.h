@@ -2,12 +2,18 @@
 
 #include <Eigen/Geometry>
 #include <unsupported/Eigen/Splines>
+#include <vector>
+
+template <typename Scalar, int Dim, int Degree = 3>
+class SplineInterpolation;
+template <typename Scalar>
+class SlerpInterpolation;
 
 template <typename Scalar, int Dim, int Degree = 3>
 struct CartesianInterpolation {
   CartesianInterpolation(
     const Eigen::Matrix<Scalar, Eigen::Dynamic, Dim>& positions,
-    const vector<Eigen::Quaternion<Scalar>>& orientations,
+    const std::vector<Eigen::Quaternion<Scalar>>& orientations,
     const Eigen::Matrix<Scalar, Eigen::Dynamic, 1>& knots
   ) {
     position = new SplineInterpolation<Scalar, Dim, Degree>(positions, knots);
@@ -23,7 +29,7 @@ struct CartesianInterpolation {
   SlerpInterpolation<Scalar>* orientation;
 };
 
-template <typename Scalar, int Dim, int Degree = 3>
+template <typename Scalar, int Dim, int Degree>
 class SplineInterpolation {
 public:
   SplineInterpolation(
@@ -61,7 +67,7 @@ template <typename Scalar>
 class SlerpInterpolation {
 public:
   SlerpInterpolation(
-    const vector<Eigen::Quaternion<Scalar>>& orientations,
+    const std::vector<Eigen::Quaternion<Scalar>>& orientations,
     const Eigen::Matrix<Scalar, Eigen::Dynamic, 1>& knots) :
     knots_(knots), orientations_(orientations)
   {
@@ -74,14 +80,14 @@ public:
   Eigen::Quaternion<Scalar> operator()(const Scalar& t) const {
     int knotIndex = 0;
     for (int i = 1; i < knots_.size(); ++i) { // index 0 is always time = 0.0
-      if (t < knots[i]) {
+      if (t < knots_[i]) {
         knotIndex = i;
         break;
       }
     }
     auto norm_t = normalize(t, knotIndex);
-    auto& q = orientations(knotIndex-1);
-    return q.slerp(norm_t, orientations[knotIndex]);
+    auto& q = orientations_[knotIndex-1];
+    return q.slerp(norm_t, orientations_[knotIndex]);
   }
 
 private:
@@ -89,7 +95,7 @@ private:
     return (t - knots_[knotIndex-1]) / knots_diff_[knotIndex-1];
   }
 
-  vector<Eigen::Quaternion<Scalar>> orientations_;
+  std::vector<Eigen::Quaternion<Scalar>> orientations_;
   Eigen::Matrix<Scalar, Eigen::Dynamic, 1> knots_;
   Eigen::Matrix<Scalar, Eigen::Dynamic, 1> knots_diff_;
 };
