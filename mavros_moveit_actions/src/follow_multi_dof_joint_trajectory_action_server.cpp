@@ -131,32 +131,34 @@ public:
                 action_server_.setAborted();
 
             auto& trajectory = goal->trajectory;
-            auto spline_interpolation = generateInterpolation(trajectory);
-
+            Eigen::Matrix<double, Eigen::Dynamic, 1> knots;
+            auto spline_interpolation = generateInterpolation(trajectory, knots);
+            auto time = 0.0;
             geometry_msgs::PoseStamped cmd_pose;
-            for (const auto& p : trajectory.points) {
-                if(action_server_.isPreemptRequested() || !ros::ok()){
+            while (time <= knots.tail(1)[0]) {
+                if(action_server_.isPreemptRequested() || !ros::ok()) {
                     action_server_.setPreempted();
                     success = false;
                     break;
                 }
-                ROS_INFO_STREAM("Trajectory time:" << p.time_from_start);
-                const geometry_msgs::Transform& trans = p.transforms[0]; // only single virtual joint exists
-                cmd_pose.pose.position.x = trans.translation.x;
-                cmd_pose.pose.position.y = trans.translation.y;
-                cmd_pose.pose.position.z = trans.translation.z;
-                cmd_pose.pose.orientation = trans.rotation;
-                feedback_.current_pose = cmd_pose;
-                mavros_msgs::PositionTarget target;
-                target.position = cmd_pose.pose.position;
-                target.yaw = getYaw(cmd_pose.pose.orientation);
+                Eigen::Matrix<double, 3, 1> interp_position = (*spline_interpolation.position)(time);
+                Eigen::Quaternion<double> interp_orientation = (*spline_interpolation.orientation)(time);
+                cmd_pose.pose.position.x = interp_position[0];
+                cmd_pose.pose.position.y = interp_position[1];
+                cmd_pose.pose.position.z = interp_position[2];
+                cmd_pose.pose.orientation.w = interp_orientation.w;
+                cmd_pose.pose.orientation.x = interp_orientation.x;
+                cmd_pose.pose.orientation.y = interp_orientation.y;
+                cmd_pose.pose.orientation.z = interp_orientation.z;
                 if (control_mode_ == ControlMode::POSITION) {
                     cmd_pose.header.stamp = ros::Time::now();
                     local_pose_pub_.publish(target);
                 } else if (control_mode_ == ControlMode::VELOCITY) {
                     generateVelocityCommand(cmd_pose.pose);
                 }
+                feedback_.current_pose = cmd_pose;
                 action_server_.publishFeedback(feedback_);
+                time += rate_.expectedCycleTime().sec;
                 ros::spinOnce();
                 rate_.sleep();
             }
@@ -195,12 +197,13 @@ public:
     }
 
     CartesianInterpolation<double, 3> generateInterpolation(
-        const trajectory_msgs::MultiDOFJointTrajectory& trajectory)
+        const trajectory_msgs::MultiDOFJointTrajectory& trajectory,
+        Eigen::Matrix<double, Eigen::Dynamic, 1>& knots)
     {
         auto size = trajectory.points.size() + 1;
         Eigen::Matrix<double, Eigen::Dynamic, 3> positions(size);
         std::vector<Eigen::Quaternion<double> > orientations(size);
-        Eigen::Matrix<double, Eigen::Dynamic, 1> knots(size);
+        knots.resize(size);
         knots[0] = 0.0;
         auto& trans = current_pose_.pose.position;
         auto& rot = current_pose_.pose.orientation;
