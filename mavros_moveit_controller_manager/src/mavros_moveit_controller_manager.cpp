@@ -94,10 +94,6 @@ public:
                                                                                << " is not specified as an array");
           continue;
         }
-
-        ROS_INFO_STREAM("name:" << name);
-        ROS_INFO_STREAM("type:" << type);
-        ROS_INFO_STREAM("action_ns:" << action_ns);
         ActionBasedControllerHandleBasePtr new_handle;
         if(type == "FollowMultiDofJointTrajectory")
         {
