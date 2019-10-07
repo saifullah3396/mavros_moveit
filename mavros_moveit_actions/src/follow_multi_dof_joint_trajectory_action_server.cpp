@@ -82,15 +82,15 @@ public:
                 std::unique_ptr<VelocityControlHandler>(
                     new VelocityControlHandler(nh_)
                 );
-            double lin_vel_rate_p, lin_vel_rate_i, lin_vel_rate_d, lin_vel_rate_i_min, lin_vel_rate_i_max;
+            double lin_rate_p, lin_rate_i, lin_rate_d, lin_rate_i_min, lin_rate_i_max;
             double yaw_rate_p, yaw_rate_i, yaw_rate_d, yaw_rate_i_min, yaw_rate_i_max;
 
             // Linear velocity PID gains and bound of integral windup
-			p_nh.param("lin_vel_rate_p", lin_vel_rate_p, 0.4);
-			p_nh.param("lin_vel_rate_i", lin_vel_rate_i, 0.05);
-			p_nh.param("lin_vel_rate_d", lin_vel_rate_d, 0.12);
-			p_nh.param("lin_vel_rate_i_min", lin_vel_rate_i_min, -0.1);
-            p_nh.param("lin_vel_rate_i_max", lin_vel_rate_i_max, 0.1);
+			p_nh.param("lin_rate_p", lin_rate_p, 0.4);
+			p_nh.param("lin_rate_i", lin_rate_i, 0.05);
+			p_nh.param("lin_rate_d", lin_rate_d, 0.12);
+			p_nh.param("lin_rate_i_min", lin_rate_i_min, -0.1);
+            p_nh.param("lin_rate_i_max", lin_rate_i_max, 0.1);
 
 			// Yaw rate PID gains and bounds of integral windup
 			p_nh.param("yaw_rate_p", yaw_rate_p, 0.011);
@@ -104,11 +104,11 @@ public:
             for (int i = 0; i < static_cast<int>(CI::count)-1; ++i) {
 			    velocity_control_handler_->setupController(
                     static_cast<CI>(i), 
-                    lin_vel_rate_p, 
-                    lin_vel_rate_i, 
-                    lin_vel_rate_d, 
-                    lin_vel_rate_i_max, 
-                    lin_vel_rate_i_min);
+                    lin_rate_p, 
+                    lin_rate_i, 
+                    lin_rate_d, 
+                    lin_rate_i_max, 
+                    lin_rate_i_min);
             }
             velocity_control_handler_->setupController(
                 CI::yaw, 
