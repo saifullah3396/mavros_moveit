@@ -40,8 +40,9 @@ public:
     knot_diff_ = knots.maxCoeff() - knot_min_;
     spline_ = 
       Eigen::SplineFitting<Eigen::Spline<Scalar, Dim>>::Interpolate(
-        points, Degree, normalize(knots)
+        points.transpose(), Degree, normalize(knots)
       );
+    
   }
     
   Eigen::Matrix<Scalar, Dim, 1> operator()(const Scalar& t) const {
