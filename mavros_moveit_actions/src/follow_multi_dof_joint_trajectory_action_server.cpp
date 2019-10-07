@@ -312,12 +312,6 @@ public:
                 CI::z, 
                 cmd_pose.position.z - current_pose_.pose.position.z, 
                 last_update_time_);
-        tf::Quaternion q_i, q_f;
-        tf::quaternionMsgToTF(current_pose_.pose.orientation, q_i);
-        tf::quaternionMsgToTF(cmd_pose.orientation, q_f);
-        tf::Matrix3x3(q_f *  q_i.inverse())
-            .getRPY(
-                vel_msg.twist.angular.x, vel_msg.twist.angular.y, vel_msg.twist.angular.z);
         target.yaw_rate =
             velocity_control_handler_->computeEffort(
                 CI::yaw, 
