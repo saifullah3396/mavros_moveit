@@ -10,7 +10,7 @@
         <arg name="vehicle" value="$(arg vehicle)"/>
     </include>
 
-    <node pkg="tf2_ros" type="static_transform_publisher" name="rplidar_link_broadcaster_0" args="0 0 0.1 0 0 0 base_link /rplidar_link" />
+    <node pkg="tf" type="static_transform_publisher" name="rplidar_link_broadcaster_0" args="0 0 0.1 0 0 0 base_link /rplidar_link 10" />
 
     <!-- Start gmapping for map creation -->
     <!--<include file="$(find mavros_moveit_avoidance)/launch/mavros_gmapping.launch"/>-->
