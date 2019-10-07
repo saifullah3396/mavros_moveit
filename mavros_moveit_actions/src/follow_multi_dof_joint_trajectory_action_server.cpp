@@ -125,7 +125,7 @@ public:
         if (control_mode_ == ControlMode::position)
             local_pose_pub_ = nh_.advertise<mavros_msgs::PositionTarget>("mavros/setpoint_raw/local", 10);
         else if (control_mode_ == ControlMode::velocity)
-            local_vel_pub_ = nh_.advertise<geometry_msgs::TwistStamped>("mavros/setpoint_raw/local", 10);
+            local_vel_pub_ = nh_.advertise<mavros_msgs::PositionTarget>("mavros/setpoint_raw/local", 10);
         arming_client_ = nh_.serviceClient<mavros_msgs::CommandBool>("mavros/cmd/arming");
         set_mode_client_ = nh_.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
 
@@ -269,6 +269,7 @@ public:
             orientations[i] = Eigen::Quaternion<double>(rot.w, rot.x, rot.y, rot.z);
             knots[i] = trajectory.points[i-1].time_from_start.toSec() + curr_to_start_pose_time_;
         }
+        #ifdef DEBUG
         ROS_DEBUG_STREAM("Interpolation positions:" << positions);
         for (int i = 0; i < size; ++i) {
             ROS_DEBUG_STREAM("Interpolation orientations:" << 
@@ -278,6 +279,7 @@ public:
                 orientations[i].z());
         }
         ROS_DEBUG_STREAM("Interpolation knots:" << knots.transpose());
+        #endif
         return CartesianInterpolation<double, 3>(positions, orientations, knots);
     }
 
