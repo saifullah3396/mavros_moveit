@@ -150,27 +150,25 @@ public:
             // trajectory execution started
             executing = true;
 
+            last_update_time_ = ros::Time::now();
+
             //send a few setpoints before starting
             if (control_mode_ == ControlMode::position) {
                 mavros_msgs::PositionTarget target;
                 target.position = current_pose_.pose.position;
                 target.yaw = getYaw(current_pose_.pose.orientation);
-                for(int i = 1; ros::ok() && i > 0; --i) {
-                    local_pose_pub_.publish(target);
-                    ros::spinOnce();
-                    rate_.sleep();
-                }
+                local_pose_pub_.publish(target);
+                ros::spinOnce();
+                rate_.sleep();
             } else if (control_mode_ == ControlMode::velocity) {
                 mavros_msgs::PositionTarget target;
                 target.velocity.x = 0.0;
                 target.velocity.y = 0.0;
                 target.velocity.z = 0.0;
                 target.yaw_rate = 0.0;
-                for(int i = 1; ros::ok() && i > 0; --i) {
-                    local_vel_pub_.publish(target);
-                    ros::spinOnce();
-                    rate_.sleep();
-                }
+                local_vel_pub_.publish(target);
+                ros::spinOnce();
+                rate_.sleep();
             }
 
             // Arm vehicle
@@ -186,7 +184,6 @@ public:
             auto spline_interpolation = generateInterpolation(trajectory, knots);
             auto time = 0.0;
             geometry_msgs::PoseStamped cmd_pose;
-            last_update_time_ = ros::Time::now();
             while (time <= knots.tail(1)[0]) {
                 if(action_server_.isPreemptRequested() || !ros::ok()) {
                     action_server_.setPreempted();
@@ -214,6 +211,26 @@ public:
                 rate_.sleep();
                 ros::spinOnce();
             }
+
+            /*tf::Pose final_pose;
+            tf::poseMsgToTF(cmd_pose.pose, final_pose);
+            while (!targetReached(final_pose)) {
+                if(action_server_.isPreemptRequested() || !ros::ok()) {
+                    action_server_.setPreempted();
+                    success = false;
+                    break;
+                }
+                if (control_mode_ == ControlMode::position) {
+                    publishPositionCommand(cmd_pose.pose);
+                } else if (control_mode_ == ControlMode::velocity) {
+                    publishVelocityCommand(cmd_pose.pose);
+                }
+                feedback_.current_pose = cmd_pose;
+                action_server_.publishFeedback(feedback_);
+                last_update_time_ = ros::Time::now();
+                rate_.sleep();
+                ros::spinOnce();
+            }*/
         } else {
             ROS_WARN("Mavros not connected to FCU.");
             action_server_.setAborted();
@@ -317,7 +334,19 @@ public:
                 CI::yaw, 
                 getYaw(cmd_pose.orientation) - getYaw(current_pose_.pose.orientation),
                 last_update_time_);
+        target.coordinate_frame = mavros_msgs::PositionTarget::FRAME_LOCAL_NED;
+        target.header.frame_id = "map";
+        target.type_mask = 
+            mavros_msgs::PositionTarget::IGNORE_PX | 
+            mavros_msgs::PositionTarget::IGNORE_PY |
+            mavros_msgs::PositionTarget::IGNORE_PZ |
+            mavros_msgs::PositionTarget::IGNORE_YAW |
+            mavros_msgs::PositionTarget::FORCE |
+            mavros_msgs::PositionTarget::IGNORE_AFX | 
+            mavros_msgs::PositionTarget::IGNORE_AFY |
+            mavros_msgs::PositionTarget::IGNORE_AFZ;
         local_vel_pub_.publish(target);
+        ROS_INFO_STREAM("target:" << target);
     }
 
     double getYaw(const tf::Quaternion& q) const {
