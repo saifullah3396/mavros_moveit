@@ -35,9 +35,11 @@
 
 /* Author: Saifullah */
 
+#include <memory>
 #include <actionlib/server/simple_action_server.h>
 #include <actionlib/client/simple_action_client.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <control_toolbox/pid.h>
 #include <mavros_moveit_actions/FollowMultiDofJointTrajectoryAction.h>
 #include <mavros_moveit_actions/spline_interpolation.h>
 #include <mavros_msgs/CommandBool.h>
@@ -62,27 +64,68 @@ public:
     }
 
     void init() {
-        ros::NodeHandle nh("~");
+        ros::NodeHandle p_nh("~");
         // setpoint publishing rate MUST be faster than 2Hz. From mavros documentation
         double rate;
-		nh.param("rate", rate, 100.0);
+		p_nh.param("rate", rate, 100.0);
         rate_ = ros::Rate(rate);
+        cycle_time_ = rate_.expectedCycleTime().toSec();
 
         // set control mode
         std::string control_mode;
-		nh.param<std::string>("control_mode", control_mode, "velocity");
+		p_nh.param<std::string>("control_mode", control_mode, "velocity");
         if (control_mode == "position")
-            control_mode_ = ControlMode::POSITION;
-        else if (control_mode == "velocity")
-            control_mode_ = ControlMode::VELOCITY;
+            control_mode_ = ControlMode::position;
+        else if (control_mode == "velocity") {
+            control_mode_ = ControlMode::velocity;
+            velocity_control_handler_ = 
+                std::unique_ptr<VelocityControlHandler>(
+                    new VelocityControlHandler(nh_)
+                );
+            double lin_vel_rate_p, lin_vel_rate_i, lin_vel_rate_d, lin_vel_rate_i_min, lin_vel_rate_i_max;
+            double yaw_rate_p, yaw_rate_i, yaw_rate_d, yaw_rate_i_min, yaw_rate_i_max;
+
+            // Linear velocity PID gains and bound of integral windup
+			p_nh.param("lin_vel_rate_p", lin_vel_rate_p, 0.4);
+			p_nh.param("lin_vel_rate_i", lin_vel_rate_i, 0.05);
+			p_nh.param("lin_vel_rate_d", lin_vel_rate_d, 0.12);
+			p_nh.param("lin_vel_rate_i_min", lin_vel_rate_i_min, -0.1);
+            p_nh.param("lin_vel_rate_i_max", lin_vel_rate_i_max, 0.1);
+
+			// Yaw rate PID gains and bounds of integral windup
+			p_nh.param("yaw_rate_p", yaw_rate_p, 0.011);
+			p_nh.param("yaw_rate_i", yaw_rate_i, 0.00058);
+			p_nh.param("yaw_rate_d", yaw_rate_d, 0.12);
+			p_nh.param("yaw_rate_i_min", yaw_rate_i_min, -0.005);
+            p_nh.param("yaw_rate_i_max", yaw_rate_i_max, 0.005);
+
+            typedef VelocityControlHandler::ControllerIndex CI;
+			// Setup of the PID controllers
+            for (int i = 0; i < static_cast<int>(CI::count)-1; ++i) {
+			    velocity_control_handler_->setupController(
+                    static_cast<CI>(i), 
+                    lin_vel_rate_p, 
+                    lin_vel_rate_i, 
+                    lin_vel_rate_d, 
+                    lin_vel_rate_i_max, 
+                    lin_vel_rate_i_min);
+            }
+            velocity_control_handler_->setupController(
+                CI::yaw, 
+                yaw_rate_p, 
+                yaw_rate_i, 
+                yaw_rate_d, 
+                yaw_rate_i_max, 
+                yaw_rate_i_min);
+        }
 
         // setup publishers/subscribers/services
         state_sub_ = nh_.subscribe<mavros_msgs::State>("mavros/state", 10, &FollowMultiDofJointTrajectoryAction::stateCb, this);
         local_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>("mavros/local_position/pose", 10, &FollowMultiDofJointTrajectoryAction::poseCb, this);
-        if (control_mode_ == ControlMode::POSITION)
+        if (control_mode_ == ControlMode::position)
             local_pose_pub_ = nh_.advertise<mavros_msgs::PositionTarget>("mavros/setpoint_raw/local", 10);
-        else if (control_mode_ == ControlMode::VELOCITY)
-            local_vel_pub_ = nh_.advertise<geometry_msgs::TwistStamped>("mavros/setpoint_velocity/cmd_vel", 10);
+        else if (control_mode_ == ControlMode::velocity)
+            local_vel_pub_ = nh_.advertise<geometry_msgs::TwistStamped>("mavros/setpoint_raw/local", 10);
         arming_client_ = nh_.serviceClient<mavros_msgs::CommandBool>("mavros/cmd/arming");
         set_mode_client_ = nh_.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
 
@@ -108,18 +151,26 @@ public:
             executing = true;
 
             //send a few setpoints before starting
-            mavros_msgs::PositionTarget target;
-            target.position = current_pose_.pose.position;
-            target.yaw = getYaw(current_pose_.pose.orientation);
-            for(int i = 1; ros::ok() && i > 0; --i) {
-                if (control_mode_ == ControlMode::POSITION) {
+            if (control_mode_ == ControlMode::position) {
+                mavros_msgs::PositionTarget target;
+                target.position = current_pose_.pose.position;
+                target.yaw = getYaw(current_pose_.pose.orientation);
+                for(int i = 1; ros::ok() && i > 0; --i) {
                     local_pose_pub_.publish(target);
-                } else if (control_mode_ == ControlMode::VELOCITY) {
-                    geometry_msgs::TwistStamped vel_msg;
-                    local_vel_pub_.publish(vel_msg);
+                    ros::spinOnce();
+                    rate_.sleep();
                 }
-                ros::spinOnce();
-                rate_.sleep();
+            } else if (control_mode_ == ControlMode::velocity) {
+                mavros_msgs::PositionTarget target;
+                target.velocity.x = 0.0;
+                target.velocity.y = 0.0;
+                target.velocity.z = 0.0;
+                target.yaw_rate = 0.0;
+                for(int i = 1; ros::ok() && i > 0; --i) {
+                    local_vel_pub_.publish(target);
+                    ros::spinOnce();
+                    rate_.sleep();
+                }
             }
 
             // Arm vehicle
@@ -135,6 +186,7 @@ public:
             auto spline_interpolation = generateInterpolation(trajectory, knots);
             auto time = 0.0;
             geometry_msgs::PoseStamped cmd_pose;
+            last_update_time_ = ros::Time::now();
             while (time <= knots.tail(1)[0]) {
                 if(action_server_.isPreemptRequested() || !ros::ok()) {
                     action_server_.setPreempted();
@@ -150,17 +202,17 @@ public:
                 cmd_pose.pose.orientation.x = interp_orientation.x();
                 cmd_pose.pose.orientation.y = interp_orientation.y();
                 cmd_pose.pose.orientation.z = interp_orientation.z();
-                if (control_mode_ == ControlMode::POSITION) {
-                    cmd_pose.header.stamp = ros::Time::now();
-                    local_pose_pub_.publish(target);
-                } else if (control_mode_ == ControlMode::VELOCITY) {
-                    generateVelocityCommand(cmd_pose.pose);
+                if (control_mode_ == ControlMode::position) {
+                    publishPositionCommand(cmd_pose.pose);
+                } else if (control_mode_ == ControlMode::velocity) {
+                    publishVelocityCommand(cmd_pose.pose);
                 }
                 feedback_.current_pose = cmd_pose;
                 action_server_.publishFeedback(feedback_);
-                time += rate_.expectedCycleTime().sec;
-                ros::spinOnce();
+                time += cycle_time_;
+                last_update_time_ = ros::Time::now();
                 rate_.sleep();
+                ros::spinOnce();
             }
         } else {
             ROS_WARN("Mavros not connected to FCU.");
@@ -209,32 +261,67 @@ public:
         auto& rot = current_pose_.pose.orientation;
         positions.row(0) << trans.x, trans.y, trans.z;
         orientations[0] = Eigen::Quaternion<double>(rot.w, rot.x, rot.y, rot.z);
+        auto cycle_time = rate_.expectedCycleTime().toSec();
         for (int i = 1; i < size; ++i) {
-            auto& trans = trajectory.points[i].transforms[0].translation;
-            auto& rot = trajectory.points[i].transforms[0].rotation;
+            auto& trans = trajectory.points[i-1].transforms[0].translation;
+            auto& rot = trajectory.points[i-1].transforms[0].rotation;
             positions.row(i) << trans.x, trans.y, trans.z;
             orientations[i] = Eigen::Quaternion<double>(rot.w, rot.x, rot.y, rot.z);
-            knots[i] = trajectory.points[i].time_from_start.sec;
+            knots[i] = trajectory.points[i-1].time_from_start.toSec() + curr_to_start_pose_time_;
         }
+        ROS_DEBUG_STREAM("Interpolation positions:" << positions);
+        for (int i = 0; i < size; ++i) {
+            ROS_DEBUG_STREAM("Interpolation orientations:" << 
+                orientations[i].w() << ", " << 
+                orientations[i].x() << ", " << 
+                orientations[i].y() << ", " << 
+                orientations[i].z());
+        }
+        ROS_DEBUG_STREAM("Interpolation knots:" << knots.transpose());
         return CartesianInterpolation<double, 3>(positions, orientations, knots);
     }
 
-    void generateVelocityCommand(const geometry_msgs::Pose& cmd_pose) {
+    void publishPositionCommand(const geometry_msgs::Pose& cmd_pose) {
+        mavros_msgs::PositionTarget target;
+        target.header.stamp = ros::Time::now();
+        target.position = cmd_pose.position;
+        target.yaw = getYaw(cmd_pose.orientation);
+        local_pose_pub_.publish(target);
+    }
+
+    void publishVelocityCommand(const geometry_msgs::Pose& cmd_pose) {
+        mavros_msgs::PositionTarget target;
+        target.header.stamp = ros::Time::now();
         geometry_msgs::TwistStamped vel_msg;
         vel_msg.header.stamp = ros::Time::now();
-        vel_msg.twist.linear.x = cmd_pose.position.x - current_pose_.pose.position.x;
-        vel_msg.twist.linear.y = cmd_pose.position.y - current_pose_.pose.position.y;
-        vel_msg.twist.linear.z = cmd_pose.position.z - current_pose_.pose.position.z;
+        typedef VelocityControlHandler::ControllerIndex CI;
+        target.velocity.x = 
+            velocity_control_handler_->computeEffort(
+                CI::x, 
+                cmd_pose.position.x - current_pose_.pose.position.x, 
+                last_update_time_);
+        target.velocity.y = 
+            velocity_control_handler_->computeEffort(
+                CI::y, 
+                cmd_pose.position.y - current_pose_.pose.position.y, 
+                last_update_time_);
+        target.velocity.z = 
+            velocity_control_handler_->computeEffort(
+                CI::z, 
+                cmd_pose.position.z - current_pose_.pose.position.z, 
+                last_update_time_);
         tf::Quaternion q_i, q_f;
         tf::quaternionMsgToTF(current_pose_.pose.orientation, q_i);
         tf::quaternionMsgToTF(cmd_pose.orientation, q_f);
         tf::Matrix3x3(q_f *  q_i.inverse())
             .getRPY(
                 vel_msg.twist.angular.x, vel_msg.twist.angular.y, vel_msg.twist.angular.z);
-        vel_msg.twist.angular.x = vel_msg.twist.angular.x;
-        vel_msg.twist.angular.y = vel_msg.twist.angular.y;
-        vel_msg.twist.angular.z = vel_msg.twist.angular.z;
-        local_vel_pub_.publish(vel_msg);
+        target.yaw_rate =
+            velocity_control_handler_->computeEffort(
+                CI::yaw, 
+                getYaw(cmd_pose.orientation) - getYaw(current_pose_.pose.orientation),
+                last_update_time_);
+        local_vel_pub_.publish(target);
     }
 
     double getYaw(const tf::Quaternion& q) const {
@@ -293,12 +380,56 @@ public:
     }
 
 private:
+    class VelocityControlHandler {
+    public:
+        VelocityControlHandler(const ros::NodeHandle& nh) : nh_(nh) 
+        {
+        }
+
+        ~VelocityControlHandler() {}
+
+        enum class ControllerIndex {
+            x, y, z, yaw, count
+        };
+
+        void setupController(
+            const ControllerIndex& controller_idx,
+            const double& p,
+            const double& i,
+            const double& d,
+            const double& i_min,
+            const double& i_max) 
+        {
+            #ifdef CONTROL_TOOLBOX_PRE_1_14
+                controllers_[static_cast<int>(controller_idx)].initPid(p, i, d, i_min, i_max, nh_);
+            #else
+                controllers_[static_cast<int>(controller_idx)].initPid(p, i, d, i_min, i_max, false, nh_);
+            #endif
+        }
+
+        double computeEffort(
+            const ControllerIndex& controller_idx,
+            const double& error,
+            const ros::Time& last_time) 
+        {
+            return 
+                controllers_[static_cast<int>(controller_idx)].
+                    computeCommand(error, ros::Time::now() - last_time);
+        }
+
+    private:
+        std::vector<control_toolbox::Pid> controllers_;        
+        ros::NodeHandle nh_; // node handle
+    };
+
     ros::NodeHandle nh_; // node handle
 
     ActionServer action_server_; // simple actionlib server
     Feedback feedback_; // action server feedback
     Result result_; // action server result
     std::string action_name_; // action name
+    ros::Time last_update_time_; // last update time
+    double cycle_time_;
 
     mavros_msgs::State current_state_; // latest mavros state
     geometry_msgs::PoseStamped current_pose_; // latest robot pose
@@ -312,14 +443,18 @@ private:
 
     bool executing = {false}; // whether the action server is currently in execution
     
+    const float curr_to_start_pose_time_ = 0.25; // Time for moving from initial pose to start planning pose
     const float target_pos_tol = {1e-1}; // difference tolerance of position from the target position
     const float target_orientation_tol = {5e-2}; // // difference tolerance of orientation from the target orientation
 
+    typedef std::unique_ptr<VelocityControlHandler> VelocityControlHandlerPtr;
+    VelocityControlHandlerPtr velocity_control_handler_; // Velocity control handler
+
     enum class ControlMode {
-        POSITION,
-        VELOCITY
+        position,
+        velocity
     };
-    ControlMode control_mode_ = {ControlMode::POSITION};
+    ControlMode control_mode_ = {ControlMode::position};
 };
 
 int main(int argc, char** argv)

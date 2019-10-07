@@ -12,7 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
 	mavros_msgs 
 	trajectory_msgs 
 	message_generation
-	control_msgs)
+	control_msgs
+	control_toolbox)
 	
 find_package(Boost REQUIRED COMPONENTS system)
 add_action_files(
