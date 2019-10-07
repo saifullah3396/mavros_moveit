@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <launch>
-  <arg name="gui" default="true" />
+  <arg name="gui" default="false" />
   <arg name="debug" default="false" />
   <arg name="rvizconfig" default="$(find mavros_moveit)/rviz/moveit.rviz" />
   <arg name="namespace" default="mavros" />
@@ -22,23 +22,25 @@
     <param name="use_gui" value="false"/>
   </node>
 
-  <arg name="px4_start_delay" default="20.0" />  
-  <!-- Turn off failsafes for simulations -->
-  <node name="initialize_px4_params" pkg="mavros_moveit" type="initialize_px4_params" launch-prefix="bash -c 'sleep $(arg px4_start_delay); $0 $@'"/>
-
   <!-- Start the moveit move group -->
   <include file="$(find mavros_moveit_config)/launch/move_group.launch">
     <arg name="allow_trajectory_execution" value="true"/>
     <arg name="fake_execution" value="false"/>
     <arg name="info" value="false"/>
     <arg name="debug" value="$(arg debug)"/>
+    <arg name="octomap_resolution" value="0.15"/>
+    <arg name="pipeline" value="ompl"/>
   </include>
 
   <!-- Start the moveit action controller -->
   <node name="follow_multi_dof_joint_trajectory_action_server" pkg="mavros_moveit_actions" type="follow_multi_dof_joint_trajectory_action_server" output="screen">
-    <param name="rate" value="100"/>
-    <param name="control_mode" value="velocity"/>
+    <param name="rate" value="50"/>
+    <param name="control_mode" value="position"/>
   </node>
+
+  <arg name="px4_start_delay" default="20.0" />  
+  <!-- Turn off failsafes for simulations -->
+  <node name="initialize_px4_params" pkg="mavros_moveit" type="initialize_px4_params" launch-prefix="bash -c 'sleep $(arg px4_start_delay); $0 $@'"/>
 
   <!-- Start RVIZ Visualisation -->
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
