@@ -384,6 +384,7 @@ private:
     public:
         VelocityControlHandler(const ros::NodeHandle& nh) : nh_(nh) 
         {
+            controllers_.resize(static_cast<int>(ControllerIndex::count));
         }
 
         ~VelocityControlHandler() {}
