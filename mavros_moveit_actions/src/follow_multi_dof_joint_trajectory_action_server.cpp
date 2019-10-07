@@ -71,12 +71,24 @@ public:
         rate_ = ros::Rate(rate);
         cycle_time_ = rate_.expectedCycleTime().toSec();
 
+        target_.header.frame_id = "map";
+        target_.coordinate_frame = mavros_msgs::PositionTarget::FRAME_LOCAL_NED;
+
         // set control mode
         std::string control_mode;
 		p_nh.param<std::string>("control_mode", control_mode, "velocity");
-        if (control_mode == "position")
+        if (control_mode == "position") {
             control_mode_ = ControlMode::position;
-        else if (control_mode == "velocity") {
+            target_.type_mask = 
+                mavros_msgs::PositionTarget::IGNORE_VX | 
+                mavros_msgs::PositionTarget::IGNORE_VY |
+                mavros_msgs::PositionTarget::IGNORE_VZ |
+                mavros_msgs::PositionTarget::IGNORE_YAW |
+                mavros_msgs::PositionTarget::FORCE |
+                mavros_msgs::PositionTarget::IGNORE_AFX | 
+                mavros_msgs::PositionTarget::IGNORE_AFY |
+                mavros_msgs::PositionTarget::IGNORE_AFZ;
+        } else if (control_mode == "velocity") {
             control_mode_ = ControlMode::velocity;
             velocity_control_handler_ = 
                 std::unique_ptr<VelocityControlHandler>(
@@ -117,6 +129,16 @@ public:
                 yaw_rate_d, 
                 yaw_rate_i_max, 
                 yaw_rate_i_min);
+            
+            target_.type_mask = 
+                mavros_msgs::PositionTarget::IGNORE_PX | 
+                mavros_msgs::PositionTarget::IGNORE_PY |
+                mavros_msgs::PositionTarget::IGNORE_PZ |
+                mavros_msgs::PositionTarget::IGNORE_YAW |
+                mavros_msgs::PositionTarget::FORCE |
+                mavros_msgs::PositionTarget::IGNORE_AFX | 
+                mavros_msgs::PositionTarget::IGNORE_AFY |
+                mavros_msgs::PositionTarget::IGNORE_AFZ;
         }
 
         // setup publishers/subscribers/services
@@ -154,19 +176,17 @@ public:
 
             //send a few setpoints before starting
             if (control_mode_ == ControlMode::position) {
-                mavros_msgs::PositionTarget target;
-                target.position = current_pose_.pose.position;
-                target.yaw = getYaw(current_pose_.pose.orientation);
-                local_pose_pub_.publish(target);
+                target_.position = current_pose_.pose.position;
+                target_.yaw = getYaw(current_pose_.pose.orientation);
+                local_pose_pub_.publish(target_);
                 ros::spinOnce();
                 rate_.sleep();
             } else if (control_mode_ == ControlMode::velocity) {
-                mavros_msgs::PositionTarget target;
-                target.velocity.x = 0.0;
-                target.velocity.y = 0.0;
-                target.velocity.z = 0.0;
-                target.yaw_rate = 0.0;
-                local_vel_pub_.publish(target);
+                target_.velocity.x = 0.0;
+                target_.velocity.y = 0.0;
+                target_.velocity.z = 0.0;
+                target_.yaw_rate = 0.0;
+                local_vel_pub_.publish(target_);
                 ros::spinOnce();
                 rate_.sleep();
             }
@@ -301,52 +321,38 @@ public:
     }
 
     void publishPositionCommand(const geometry_msgs::Pose& cmd_pose) {
-        mavros_msgs::PositionTarget target;
-        target.header.stamp = ros::Time::now();
-        target.position = cmd_pose.position;
-        target.yaw = getYaw(cmd_pose.orientation);
-        local_pose_pub_.publish(target);
+        target_.header.stamp = ros::Time::now();
+        target_.position = cmd_pose.position;
+        target_.yaw = getYaw(cmd_pose.orientation);
+        local_pose_pub_.publish(target_);
     }
 
     void publishVelocityCommand(const geometry_msgs::Pose& cmd_pose) {
-        mavros_msgs::PositionTarget target;
-        target.header.stamp = ros::Time::now();
+        target_.header.stamp = ros::Time::now();
         geometry_msgs::TwistStamped vel_msg;
         vel_msg.header.stamp = ros::Time::now();
         typedef VelocityControlHandler::ControllerIndex CI;
-        target.velocity.x = 
+        target_.velocity.x = 
             velocity_control_handler_->computeEffort(
                 CI::x, 
                 cmd_pose.position.x - current_pose_.pose.position.x, 
                 last_update_time_);
-        target.velocity.y = 
+        target_.velocity.y = 
             velocity_control_handler_->computeEffort(
                 CI::y, 
                 cmd_pose.position.y - current_pose_.pose.position.y, 
                 last_update_time_);
-        target.velocity.z = 
+        target_.velocity.z = 
             velocity_control_handler_->computeEffort(
                 CI::z, 
                 cmd_pose.position.z - current_pose_.pose.position.z, 
                 last_update_time_);
-        target.yaw_rate =
+        target_.yaw_rate =
             velocity_control_handler_->computeEffort(
                 CI::yaw, 
                 getYaw(cmd_pose.orientation) - getYaw(current_pose_.pose.orientation),
                 last_update_time_);
-        target.coordinate_frame = mavros_msgs::PositionTarget::FRAME_LOCAL_NED;
-        target.header.frame_id = "map";
-        target.type_mask = 
-            mavros_msgs::PositionTarget::IGNORE_PX | 
-            mavros_msgs::PositionTarget::IGNORE_PY |
-            mavros_msgs::PositionTarget::IGNORE_PZ |
-            mavros_msgs::PositionTarget::IGNORE_YAW |
-            mavros_msgs::PositionTarget::FORCE |
-            mavros_msgs::PositionTarget::IGNORE_AFX | 
-            mavros_msgs::PositionTarget::IGNORE_AFY |
-            mavros_msgs::PositionTarget::IGNORE_AFZ;
-        local_vel_pub_.publish(target);
-        ROS_INFO_STREAM("target:" << target);
+        local_vel_pub_.publish(target_);
     }
 
     double getYaw(const tf::Quaternion& q) const {
@@ -472,6 +478,8 @@ private:
     const float curr_to_start_pose_time_ = 0.25; // Time for moving from initial pose to start planning pose
     const float target_pos_tol = {1e-1}; // difference tolerance of position from the target position
     const float target_orientation_tol = {5e-2}; // // difference tolerance of orientation from the target orientation
+
+    mavros_msgs::PositionTarget target_; // mavros target container
 
     typedef std::unique_ptr<VelocityControlHandler> VelocityControlHandlerPtr;
     VelocityControlHandlerPtr velocity_control_handler_; // Velocity control handler
