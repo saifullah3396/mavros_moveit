@@ -17,6 +17,16 @@
   <node name="follow_multi_dof_joint_trajectory_action_server" pkg="mavros_moveit_actions" type="follow_multi_dof_joint_trajectory_action_server" output="screen">
     <param name="rate" value="50"/>
     <param name="control_mode" value="velocity"/>
+    <param name="lin_rate_p" value="3.0"/>
+    <param name="lin_rate_i" value="0.5"/>
+    <param name="lin_rate_d" value="0.5"/>
+    <param name="lin_rate_i_min" value="-0.1"/>
+    <param name="lin_rate_i_max" value="0.1"/>
+    <param name="yaw_rate_p" value="0.011"/>
+    <param name="yaw_rate_i" value="0.00058"/>
+    <param name="yaw_rate_d" value="0.12"/>
+    <param name="yaw_rate_i_min" value="-0.005"/>
+    <param name="yaw_rate_i_max" value="0.005"/>
   </node>
 
   <arg name="px4_start_delay" default="20.0" />  
