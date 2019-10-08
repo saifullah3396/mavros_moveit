@@ -23,7 +23,7 @@ void ControllerBase::init()
     // setup publishers/subscribers
     state_sub_ = nh_.subscribe<mavros_msgs::State>("mavros/state", 5, &ControllerBase::stateCb, this);
     local_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>("mavros/local_position/pose", 5, &ControllerBase::poseCb, this);
-    local_cmd_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>("mavros_moveit/local_position/cmd_pose", 5, &ControllerBase::poseCb, this);
+    local_cmd_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>("mavros_moveit/local_position/cmd_pose", 5, &ControllerBase::commandCb, this);
     local_raw_pub_ = nh_.advertise<mavros_msgs::PositionTarget>("mavros/setpoint_raw/local", 5);
 
     // services
@@ -95,10 +95,10 @@ bool ControllerBase::targetReached(const tf::Pose& target) {
     tf::poseMsgToTF(current_pose_.pose, tf_curr);
     auto diff_t = tf_curr.inverseTimes(target);
     auto yaw = mavros_moveit_utils::getYaw(diff_t.getRotation());
-    if (fabsf(diff_t.getOrigin().x()) <= target_pos_tol && 
-        fabsf(diff_t.getOrigin().y()) <= target_pos_tol &&
-        fabsf(diff_t.getOrigin().z()) <= target_pos_tol &&
-        fabsf(yaw) <= target_orientation_tol)
+    if (fabsf(diff_t.getOrigin().x()) <= target_pos_tol_ && 
+        fabsf(diff_t.getOrigin().y()) <= target_pos_tol_ &&
+        fabsf(diff_t.getOrigin().z()) <= target_pos_tol_ &&
+        fabsf(yaw) <= target_orientation_tol_)
     {
         return true;
     }

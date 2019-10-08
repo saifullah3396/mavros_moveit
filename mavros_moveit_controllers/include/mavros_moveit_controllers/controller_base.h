@@ -55,8 +55,8 @@ protected:
     geometry_msgs::PoseStamped current_pose_; // latest robot pose
     ros::Time last_update_time_; // last update time
 
-    const double target_pos_tol = {1e-1}; // difference tolerance of position from the target position
-    const double target_orientation_tol = {5e-2}; // // difference tolerance of orientation from the target orientation
+    double target_pos_tol_; // difference tolerance of position from the target position
+    double target_orientation_tol_; // // difference tolerance of orientation from the target orientation
 };
 
 }
