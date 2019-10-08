@@ -7,8 +7,11 @@
   <license>BSD</license>
   <buildtool_depend>catkin</buildtool_depend>
   <depend>roscpp</depend>
+  <depend>geometry_msgs</depend>
   <depend>mavros_msgs</depend>
   <depend>control_msgs</depend>
+  <depend>control_toolbox</depend>
+  <depend>mavros_moveit_utils</depend>
   <export>
   </export>
 </package>

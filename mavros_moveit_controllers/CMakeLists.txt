@@ -8,13 +8,17 @@ find_package(catkin REQUIRED COMPONENTS
 	geometry_msgs 
 	mavros_msgs 
 	control_msgs
-	control_toolbox)
+	control_toolbox
+	mavros_moveit_utils)
 	
 catkin_package(
-    CATKIN_DEPENDS roscpp geometry_msgs mavros_msgs control_msgs control_toolbox
+	INCLUDE_DIRS include
+	LIBRARIES ${PROJECT_NAME}
+	CATKIN_DEPENDS roscpp geometry_msgs mavros_msgs control_msgs control_toolbox mavros_moveit_utils
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
+include_directories(include ${catkin_INCLUDE_DIRS})
 FILE (GLOB SOURCE src/*.cpp)
-add_library(mavros_moveit_controllers ${SOURCE})
-target_link_libraries(mavros_moveit_controllers ${catkin_LIBRARIES})
+add_library(${PROJECT_NAME} ${SOURCE})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
