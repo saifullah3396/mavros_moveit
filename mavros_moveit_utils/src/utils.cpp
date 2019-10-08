@@ -83,4 +83,47 @@ namespace mavros_moveit_utils {
     tf::Matrix3x3(q).getRPY(r, p, y);
     return tf::Vector3(r, p, y);
   }
+
+  // mavros utils
+  bool setMavMode(
+    const mavros_msgs::State& state, 
+    const std::string& mode,
+    ros::ServiceClient& client) 
+  {
+    if (state.mode != mode) {
+      mavros_msgs::SetMode offb_set_mode;
+      offb_set_mode.request.custom_mode = mode;
+      if (client.call(offb_set_mode) && offb_set_mode.response.mode_sent) {
+        ROS_INFO("Mode %s enabled.", mode.c_str());
+        return true;
+      } else {
+        ROS_WARN("Mode %s could not be enabled. Cannot execute moveit trajectory.", mode.c_str());
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool setArmRequest(
+    const mavros_msgs::State& state, 
+    const bool& arm,
+    ros::ServiceClient& client,
+    const double& timeout = 5.0) 
+  {
+    if (state.armed != arm) {
+      mavros_msgs::CommandBool arm_cmd;
+      arm_cmd.request.value = arm;
+      if (client.call(arm_cmd) && arm_cmd.response.success) {
+        while (!state.armed) { // Wait for arming to be complete
+          ros::spinOnce();
+          ros::Rate(timeout).sleep();
+        }
+        return true;
+      } else {
+        ROS_WARN("Vehicle arm/disarm request failed. Cannot execute moveit trajectory.");
+        return false;
+      }
+    }
+    return true;
+  }
 }

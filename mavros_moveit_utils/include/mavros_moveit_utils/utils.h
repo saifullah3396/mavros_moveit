@@ -4,6 +4,10 @@
 #include <octomap/math/Vector3.h>
 #include <tf/tf.h>
 
+#include <mavros_msgs/CommandBool.h>
+#include <mavros_msgs/State.h>
+#include <mavros_msgs/SetMode.h>
+
 namespace mavros_moveit_utils { 
   #define M_TWICE_PI 6.283185307
 
@@ -29,4 +33,16 @@ namespace mavros_moveit_utils {
   double getYaw(const tf::Quaternion& q);
   double getYaw(const geometry_msgs::Quaternion& q_msg);
   tf::Vector3 getRPY(const tf::Quaternion& q);
+
+  // mavros utils
+  bool setMavMode(
+    const mavros_msgs::State& state, 
+    const std::string& mode,
+    ros::ServiceClient& client);
+
+  bool setArmRequest(
+    const mavros_msgs::State& state, 
+    const bool& arm,
+    ros::ServiceClient& client,
+    const double& timeout = 5.0);
 }
