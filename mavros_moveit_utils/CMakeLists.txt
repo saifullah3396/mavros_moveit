@@ -9,10 +9,12 @@ find_package(catkin REQUIRED COMPONENTS
 	geometry_msgs)
 	
 catkin_package(
-    CATKIN_DEPENDS roscpp tf geometry_msgs
+	INCLUDE_DIRS include 
+	LIBRARIES ${PROJECT_NAME}
+	CATKIN_DEPENDS roscpp tf geometry_msgs
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 FILE (GLOB SOURCE src/*.cpp)
-add_library(mavros_moveit_utils ${SOURCE})
-target_link_libraries(mavros_moveit_utils ${catkin_LIBRARIES})
+add_library(${PROJECT_NAME} ${SOURCE})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
