@@ -90,7 +90,7 @@ bool ControllerBase::statusCheck()
     }
 
     if (!conditionCheck(
-        mavros_state_.mode != "OFFBOARD", 
+        mavros_state_.mode == "OFFBOARD", 
         "Controller cannot generate command unless robot mode is set to OFFBOARD",
         wrong_mode_wait_flag_))
     {
@@ -138,6 +138,8 @@ bool ControllerBase::setOffboard(
 {
     // send one command
     generateCommand(current_pose_);
+    ros::spinOnce();
+    rate_.sleep();
 
     // Set vehicle to offboard mode
     return mavros_moveit_utils::setMavMode(mavros_state_, "OFFBOARD", set_mode_client_);
@@ -157,10 +159,10 @@ void ControllerBase::commandCb(const geometry_msgs::PoseStamped::ConstPtr& cmd_p
     if (statusCheck()) {
         tf::Quaternion orientation;
         tf::quaternionMsgToTF(cmd_pose->pose.orientation, orientation);
-        if (orientation.length() == 1.0) // invalid orientation command
+        //if (orientation.length() == 1.0) // invalid orientation command
             generateCommand(*cmd_pose);
-        else
-            ROS_WARN("Invalid orientation command given to controller");
+        //else
+        //    ROS_WARN("Invalid orientation command given to controller");
     }
 }
 
