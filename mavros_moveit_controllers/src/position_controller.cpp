@@ -24,20 +24,13 @@ void PositionController::init()
 }
 
 void PositionController::commandCb(const geometry_msgs::PoseStamped::ConstPtr& cmd_pose) {
-    if (!state_received_) {
-        ROS_WARN("Controller cannot generate command due to unknown mavros state.");
-        return;
+    if (statusCheck()) {
+        target_.header.stamp = ros::Time::now();
+        target_.position = cmd_pose->pose.position;
+        target_.yaw = mavros_moveit_utils::getYaw(cmd_pose->pose.orientation);
+        local_raw_pub_.publish(target_);
+        last_update_time_ = ros::Time::now();
     }
-
-    if (!pose_received_) {
-        ROS_WARN("Controller cannot generate command due to unknown robot pose.");
-        return;
-    }
-    target_.header.stamp = ros::Time::now();
-    target_.position = cmd_pose->pose.position;
-    target_.yaw = mavros_moveit_utils::getYaw(cmd_pose->pose.orientation);
-    local_raw_pub_.publish(target_);
-    last_update_time_ = ros::Time::now();
 }
 
 }

@@ -32,6 +32,39 @@ void ControllerBase::update() {
     }
 }
 
+bool ControllerBase::statusCheck()
+{
+    // robot state is received yet?
+    if (!state_received_) {
+        ROS_WARN("Controller cannot generate command due to unknown mavros state.");
+        return false;
+    }
+
+    // robot current pose is received yet?
+    if (!pose_received_) {
+        ROS_WARN("Controller cannot generate command due to unknown robot pose.");
+        return false;
+    }
+
+    // is robot armed?
+    if (!mavros_state_.armed) {
+        ROS_WARN("Controller cannot generate command due to unarmed robot.");
+        return false;
+    }
+
+    // is robot armed?
+    if (!mavros_state_.armed) {
+        ROS_WARN("Controller cannot generate command due to unarmed robot.");
+        return false;
+    }
+
+    if (mavros_state_.mode != "OFFBOARD") {
+        ROS_WARN("Controller cannot generate command unless robot mode is set to OFFBOARD.");
+        return false;
+    }
+    return true;
+}
+
 ControllerBase* ControllerBase::makeController(const std::string& type) {
     ControllerBase* controller;
     if (type == "position")

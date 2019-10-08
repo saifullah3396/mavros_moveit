@@ -21,6 +21,8 @@ public:
     virtual void commandCb(const geometry_msgs::PoseStamped::ConstPtr& cmd_pose) = 0; // command pose callback
 
 protected:
+    bool statusCheck();
+
     ros::NodeHandle nh_; // node handle
     ros::Rate rate_ = {ros::Rate(100.0)};  // ros run rate
 
