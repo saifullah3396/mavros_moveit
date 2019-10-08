@@ -74,10 +74,10 @@ void FollowMultiDofJointTrajectoryActionServer::init() {
     local_pose_sub_ = 
         nh_.subscribe<geometry_msgs::PoseStamped>(
             "mavros/local_position/pose", 10, &FollowMultiDofJointTrajectoryActionServer::poseCb, this);
-    local_cmd_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("mavros/local_position/pose", 5);
+    local_cmd_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("/mavros_moveit/local_position/cmd_pose", 5);
     arming_client_ = nh_.serviceClient<mavros_msgs::CommandBool>("mavros/cmd/arming");
     set_mode_client_ = nh_.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
-    set_offboard_client_ = nh_.serviceClient<mavros_msgs::SetMode>("mavros_moveit/set_offboard");
+    set_offboard_client_ = nh_.serviceClient<mavros_moveit_controllers::SetOffboard>("mavros_moveit/set_offboard");
 
     // start the action server
     action_server_.start();
@@ -102,6 +102,7 @@ void FollowMultiDofJointTrajectoryActionServer::executeCb(const GoalPtr &goal) {
         mavros_moveit_controllers::SetOffboard set_offboard_msg;
         if (!set_offboard_client_.call(set_offboard_msg))
             action_server_.setAborted();
+        ros::spinOnce();
 
         auto& trajectory = goal->trajectory;
         Eigen::Matrix<double, Eigen::Dynamic, 1> knots;
