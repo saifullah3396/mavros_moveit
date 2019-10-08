@@ -6,7 +6,7 @@ namespace mavros_moveit_controllers {
 
 VelocityController::VelocityController()
 {
-    controllers_.resize(static_cast<int>(ControllerIndex::count));
+    controllers_.resize(static_cast<int>(CI::count));
 }
 
 VelocityController::~VelocityController() {}
@@ -17,40 +17,11 @@ void VelocityController::init()
     ControllerBase::init();
 
     ros::NodeHandle p_nh("~");
-    double lin_rate_p, lin_rate_i, lin_rate_d, lin_rate_i_min, lin_rate_i_max;
-    double yaw_rate_p, yaw_rate_i, yaw_rate_d, yaw_rate_i_min, yaw_rate_i_max;
-
-    // Linear velocity PID gains and bound of integral windup
-    p_nh.param("lin_rate_p", lin_rate_p, 0.4);
-    p_nh.param("lin_rate_i", lin_rate_i, 0.05);
-    p_nh.param("lin_rate_d", lin_rate_d, 0.12);
-    p_nh.param("lin_rate_i_min", lin_rate_i_min, -0.1);
-    p_nh.param("lin_rate_i_max", lin_rate_i_max, 0.1);
-
-    // Yaw rate PID gains and bounds of integral windup
-    p_nh.param("yaw_rate_p", yaw_rate_p, 0.011);
-    p_nh.param("yaw_rate_i", yaw_rate_i, 0.00058);
-    p_nh.param("yaw_rate_d", yaw_rate_d, 0.12);
-    p_nh.param("yaw_rate_i_min", yaw_rate_i_min, -0.005);
-    p_nh.param("yaw_rate_i_max", yaw_rate_i_max, 0.005);
-
     // Setup of the PID controllers
-    for (int i = 0; i < static_cast<int>(CI::count)-1; ++i) {
-        setupController(
-            static_cast<CI>(i), 
-            lin_rate_p, 
-            lin_rate_i, 
-            lin_rate_d, 
-            lin_rate_i_max, 
-            lin_rate_i_min);
-    }
-    setupController(
-        CI::yaw, 
-        yaw_rate_p, 
-        yaw_rate_i, 
-        yaw_rate_d, 
-        yaw_rate_i_max, 
-        yaw_rate_i_min);
+    setupController(CI::x, "x");
+    setupController(CI::y, "y");
+    setupController(CI::z, "z");
+    setupController(CI::yaw, "yaw");
 
     target_.type_mask = 
         mavros_msgs::PositionTarget::IGNORE_PX | 
@@ -92,22 +63,14 @@ void VelocityController::generateCommand(const geometry_msgs::PoseStamped& cmd_p
 }
 
 void VelocityController::setupController(
-    const ControllerIndex& controller_idx,
-    const double& p,
-    const double& i,
-    const double& d,
-    const double& i_min,
-    const double& i_max) 
+    const CI& controller_idx,
+    const std::string& name) 
 {
-    #ifdef CONTROL_TOOLBOX_PRE_1_14
-        controllers_[static_cast<int>(controller_idx)].initPid(p, i, d, i_min, i_max, nh_);
-    #else
-        controllers_[static_cast<int>(controller_idx)].initPid(p, i, d, i_min, i_max, false, nh_);
-    #endif
+    controllers_[static_cast<int>(controller_idx)].init(ros::NodeHandle(nh_, "velocity/" + name));
 }
 
 double VelocityController::computeEffort(
-    const ControllerIndex& controller_idx,
+    const CI& controller_idx,
     const double& error,
     const ros::Time& last_time) 
 {

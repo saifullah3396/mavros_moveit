@@ -17,11 +17,7 @@ public:
 
     void setupController(
         const CI& controller_idx,
-        const double& p,
-        const double& i,
-        const double& d,
-        const double& i_min,
-        const double& i_max);
+        const std::string& name);
 
     double computeEffort(
         const CI& controller_idx,

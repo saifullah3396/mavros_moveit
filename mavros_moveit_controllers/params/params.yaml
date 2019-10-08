@@ -1,0 +1,3 @@
+rate: 50
+target_pos_tol_: 0.1
+target_orientation_tol_: 0.05
