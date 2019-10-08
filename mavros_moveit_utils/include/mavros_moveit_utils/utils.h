@@ -27,5 +27,6 @@ namespace mavros_moveit_utils {
 
   octomath::Vector3 tfToOctomath(const tf::Vector3& tf);
   double getYaw(const tf::Quaternion& q);
+  double getYaw(const geometry_msgs::Quaternion& q_msg);
   tf::Vector3 getRPY(const tf::Quaternion& q);
 }
