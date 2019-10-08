@@ -94,10 +94,10 @@ namespace mavros_moveit_utils {
       mavros_msgs::SetMode offb_set_mode;
       offb_set_mode.request.custom_mode = mode;
       if (client.call(offb_set_mode) && offb_set_mode.response.mode_sent) {
-        ROS_INFO("Mode %s enabled.", mode.c_str());
+        ROS_INFO("Mode %s enabled", mode.c_str());
         return true;
       } else {
-        ROS_WARN("Mode %s could not be enabled. Cannot execute moveit trajectory.", mode.c_str());
+        ROS_WARN("Mode %s could not be enabled. Cannot execute moveit trajectory", mode.c_str());
         return false;
       }
     }

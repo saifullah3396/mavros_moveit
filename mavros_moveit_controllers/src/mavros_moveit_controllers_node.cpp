@@ -7,7 +7,7 @@ int main(int argc, char** argv)
   ros::NodeHandle p_nh("~");
   std::string controller_type;
   p_nh.param<std::string>("controller_type", controller_type, "position");
-  ROS_INFO("Initializing controller of type '%s'.", controller_type.c_str());
+  ROS_INFO("Initializing controller of type '%s'", controller_type.c_str());
   auto controller = 
     mavros_moveit_controllers::ControllerBase::makeController(controller_type);
   controller->init();
