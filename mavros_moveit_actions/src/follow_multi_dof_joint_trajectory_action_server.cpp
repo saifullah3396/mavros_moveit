@@ -319,8 +319,6 @@ void FollowMultiDofJointTrajectoryActionServer::publishPositionCommand(const geo
 
 void FollowMultiDofJointTrajectoryActionServer::publishVelocityCommand(const geometry_msgs::Pose& cmd_pose) {
     target_.header.stamp = ros::Time::now();
-    geometry_msgs::TwistStamped vel_msg;
-    vel_msg.header.stamp = ros::Time::now();
     typedef VelocityControlHandler::ControllerIndex CI;
     target_.velocity.x = 
         velocity_control_handler_->computeEffort(
