@@ -12,7 +12,9 @@ find_package(catkin REQUIRED COMPONENTS
 	mavros_msgs 
 	trajectory_msgs 
 	message_generation
-	control_msgs)
+	control_msgs
+	control_toolbox
+	mavros_moveit_utils)
 	
 find_package(Boost REQUIRED COMPONENTS system)
 add_action_files(
@@ -32,6 +34,6 @@ catkin_package(
     CATKIN_DEPENDS roscpp actionlib_msgs mavros_msgs trajectory_msgs
 )
 
-include_directories(${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
+include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 add_executable(follow_multi_dof_joint_trajectory_action_server src/follow_multi_dof_joint_trajectory_action_server.cpp)
 target_link_libraries(follow_multi_dof_joint_trajectory_action_server ${catkin_LIBRARIES})

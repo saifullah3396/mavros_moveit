@@ -52,7 +52,7 @@
     <arg name="pluginlists_yaml" default="$(find mavros_moveit)/launch/px4_pluginlists.yaml" />
 	<arg name="config_yaml" default="$(find mavros_moveit)/launch/px4_config.yaml" />
 
-	<node pkg="tf" type="static_transform_publisher" name="map_to_local" args="0.0 0.0 0.0 0.0 0.0 0.0  /map /local_origin  100" />
+	<node pkg="tf" type="static_transform_publisher" name="map_to_local" args="0.0 0.0 0.0 0.0 0.0 0.0 /map /local_origin  100" />
 
     <include file="$(find mavros)/launch/node.launch">
         <arg name="pluginlists_yaml" value="$(arg pluginlists_yaml)" />
@@ -66,5 +66,5 @@
     </include>
 
     <!-- Launch RVIZ and Moveit -->
-    <include file="$(find mavros_moveit)/launch/mavros_moveit.launch"/>
+    <include file="$(find mavros_moveit)/launch/mavros_visualization.launch" />
 </launch>

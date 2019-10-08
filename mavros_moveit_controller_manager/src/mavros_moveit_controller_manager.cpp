@@ -56,8 +56,6 @@ class MavrosMoveItControllerManager : public moveit_controller_manager::MoveItCo
 public:
   MavrosMoveItControllerManager() : node_handle_("~")
   {
-    ROS_INFO("Initializing MavrosMoveItControllerManager...");
-
     if (!node_handle_.hasParam("controller_list"))
     {
       ROS_ERROR_STREAM_NAMED(LOGNAME, "No controller_list specified.");
@@ -75,7 +73,6 @@ public:
     /* actually create each controller */
     for (int i = 0; i < controller_list.size(); ++i)  // NOLINT(modernize-loop-convert)
     {
-      ROS_INFO_STREAM("Initializing controller:" << i);
       if (!isStruct(controller_list[i], { "name", "joints", "action_ns", "type" }))
       {
         ROS_ERROR_STREAM_NAMED(LOGNAME, "name, joints, action_ns, and type must be specifed for each controller");
@@ -94,10 +91,6 @@ public:
                                                                                << " is not specified as an array");
           continue;
         }
-
-        ROS_INFO_STREAM("name:" << name);
-        ROS_INFO_STREAM("type:" << type);
-        ROS_INFO_STREAM("action_ns:" << action_ns);
         ActionBasedControllerHandleBasePtr new_handle;
         if(type == "FollowMultiDofJointTrajectory")
         {

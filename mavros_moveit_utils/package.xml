@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>mavros_moveit_utils</name>
+  <version>0.0.0</version>
+  <description>The mavros_moveit_utils package</description>
+  <maintainer email="saifullah3396@gmail.com">Saifullah</maintainer>
+  <license>BSD</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>roscpp</depend>
+  <depend>tf</depend>
+  <depend>mavros_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <export>
+  </export>
+</package>

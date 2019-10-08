@@ -5,10 +5,15 @@
   <!-- Params for 3D sensors config -->
   <rosparam command="load" file="$(find mavros_moveit_config)/config/sensors_3d.yaml" />
 
+  <!-- octomap settings -->
+  <arg name="octomap_frame" default="map" />
+  <arg name="octomap_resolution" default="0.1" />
+  <arg name="octomap_max_range" default="5.0" />
+
   <!-- Params for the octomap monitor -->
-  <!--  <param name="octomap_frame" type="string" value="some frame in which the robot moves" /> -->
-  <param name="octomap_resolution" type="double" value="0.025" />
-  <param name="max_range" type="double" value="5.0" />
+  <param name="octomap_frame" type="string" value="$(arg octomap_frame)" />
+  <param name="octomap_resolution" type="double" value="$(arg octomap_resolution)" />
+  <param name="max_range" type="double" value="$(arg octomap_max_range)" />
 
   <!-- Load the robot specific sensor manager; this sets the moveit_sensor_manager ROS parameter -->
   <arg name="moveit_sensor_manager" default="iris" />

@@ -1,0 +1,2 @@
+#!/bin/bash
+roslaunch mavros_moveit_avoidance mavros_gmapping.launch 2>/dev/null

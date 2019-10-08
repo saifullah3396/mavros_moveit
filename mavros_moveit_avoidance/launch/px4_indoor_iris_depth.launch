@@ -1,0 +1,30 @@
+<launch>
+    <arg name="world" default="$(find px4)/Tools/sitl_gazebo/worlds/warehouse.world" />
+    <arg name="gui" default="false" />
+    <arg name="debug" default="false" />
+    <arg name="vehicle" default="iris_depth_camera"/>
+
+    <!-- Launch PX4 Moveit -->
+    <include file="$(find mavros_moveit)/launch/px4_moveit.launch">
+        <arg name="gui" value="$(arg gui)"/>
+        <arg name="world" value="$(arg world)" />
+        <arg name="vehicle" value="$(arg vehicle)"/>
+        <arg name="x" value="-2.0"/>
+        <arg name="y" value="0.0"/>
+        <arg name="z" value="0.1"/>
+        <arg name="Y" value="3.14"/>
+    </include>
+
+    <node pkg="tf" type="static_transform_publisher" name="camera_link_broadcaster_0" args="0 0 0 -1.57 0 -1.57 base_link /camera_link 100" />
+    <!--<node pkg="tf" type="static_transform_publisher" name="laser_link_broadcaster_0" args="0 0 -0.1 0 0 0 base_link iris_depth_camera/distance_sensor::laser_link 10" />-->
+    
+    <node pkg="depthimage_to_laserscan" type="depthimage_to_laserscan" name="depthimage_to_laserscan">
+        <param name="output_frame_id" value="base_link" />
+        <remap from="image" to="/camera/depth/image_raw" />
+        <remap from="scan" to="/laser/scan" />
+    </node>
+
+    <!-- Start gmapping for map creation -->
+    <!--<include file="$(find mavros_moveit_avoidance)/launch/mavros_gmapping.launch"/>-->
+    <node name="launch_gmapping" pkg="mavros_moveit_avoidance" type="launch_gmapping"/>
+</launch>

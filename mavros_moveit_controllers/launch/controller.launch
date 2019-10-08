@@ -1,0 +1,10 @@
+<launch>
+  <arg name="controller_type" default="velocity"/>
+
+  <rosparam file="$(find mavros_moveit_controllers)/params/controller.yaml" />
+  <rosparam file="$(find mavros_moveit_controllers)/params/params.yaml" />
+
+  <node name="mavros_moveit_controllers_node" pkg="mavros_moveit_controllers" type="mavros_moveit_controllers_node" output="screen">
+    <param name="controller_type" value="$(arg controller_type)"/>
+  </node>
+</launch>
