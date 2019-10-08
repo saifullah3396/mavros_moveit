@@ -1,6 +1,8 @@
+#include <tf/tf.h>
 #include <mavros_moveit_controllers/controller_base.h>
 #include <mavros_moveit_controllers/position_controller.h>
 #include <mavros_moveit_controllers/velocity_controller.h>
+#include <mavros_moveit_utils/utils.h>
 
 namespace mavros_moveit_controllers {
 
@@ -25,6 +27,19 @@ void ControllerBase::init()
     local_raw_pub_ = nh_.advertise<mavros_msgs::PositionTarget>("mavros/setpoint_raw/local", 5);
 }
 
+ControllerBase* ControllerBase::makeController(const std::string& type) {
+    ControllerBase* controller;
+    if (type == "position")
+        controller = new PositionController();
+    else if (type == "velocity")
+        controller = new VelocityController();
+    else
+        ROS_FATAL(
+            "Cannot initialize controller of type '%s'. \
+            Possible types are: 'position' and 'velocity'", type.c_str());
+    return controller;
+}
+
 void ControllerBase::update() {
     while(ros::ok()){
         ros::spinOnce();
@@ -34,6 +49,12 @@ void ControllerBase::update() {
 
 bool ControllerBase::statusCheck()
 {
+    // is mavros connected to px4?
+    if (!mavros_state_.connected) {
+        ROS_WARN("Controller cannot generate command since mavros is not connected to px4.");
+        return false;
+    }
+
     // robot state is received yet?
     if (!state_received_) {
         ROS_WARN("Controller cannot generate command due to unknown mavros state.");
@@ -65,17 +86,19 @@ bool ControllerBase::statusCheck()
     return true;
 }
 
-ControllerBase* ControllerBase::makeController(const std::string& type) {
-    ControllerBase* controller;
-    if (type == "position")
-        controller = new PositionController();
-    else if (type == "velocity")
-        controller = new VelocityController();
-    else
-        ROS_FATAL(
-            "Cannot initialize controller of type '%s'. \
-            Possible types are: 'position' and 'velocity'", type.c_str());
-    return controller;
+bool ControllerBase::targetReached(const tf::Pose& target) {
+    tf::Pose tf_curr;
+    tf::poseMsgToTF(current_pose_.pose, tf_curr);
+    auto diff_t = tf_curr.inverseTimes(target);
+    auto yaw = mavros_moveit_utils::getYaw(diff_t.getRotation());
+    if (fabsf(diff_t.getOrigin().x()) <= target_pos_tol && 
+        fabsf(diff_t.getOrigin().y()) <= target_pos_tol &&
+        fabsf(diff_t.getOrigin().z()) <= target_pos_tol &&
+        fabsf(yaw) <= target_orientation_tol)
+    {
+        return true;
+    }
+    return false;
 }
 
 void ControllerBase::stateCb(const mavros_msgs::State::ConstPtr& mavros_state) {

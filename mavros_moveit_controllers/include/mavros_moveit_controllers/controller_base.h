@@ -22,6 +22,7 @@ public:
 
 protected:
     bool statusCheck();
+    bool targetReached(const tf::Pose& target);
 
     ros::NodeHandle nh_; // node handle
     ros::Rate rate_ = {ros::Rate(100.0)};  // ros run rate
@@ -43,6 +44,9 @@ protected:
     mavros_msgs::State mavros_state_; // latest mavros state
     geometry_msgs::PoseStamped current_pose_; // latest robot pose
     ros::Time last_update_time_; // last update time
+
+    const double target_pos_tol = {1e-1}; // difference tolerance of position from the target position
+    const double target_orientation_tol = {5e-2}; // // difference tolerance of orientation from the target orientation
 };
 
 }
