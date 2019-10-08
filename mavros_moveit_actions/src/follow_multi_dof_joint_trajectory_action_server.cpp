@@ -136,12 +136,12 @@ void FollowMultiDofJointTrajectoryActionServer::init() {
     }
 
     // setup publishers/subscribers/services
-    state_sub_ = nh_.subscribe<mavros_msgs::State>("mavros/state", 10, &FollowMultiDofJointTrajectoryActionServer::stateCb, this);
-    local_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>("mavros/local_position/pose", 10, &FollowMultiDofJointTrajectoryActionServer::poseCb, this);
+    state_sub_ = nh_.subscribe<mavros_msgs::State>("mavros/state", 5, &FollowMultiDofJointTrajectoryActionServer::stateCb, this);
+    local_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>("mavros/local_position/pose", 5, &FollowMultiDofJointTrajectoryActionServer::poseCb, this);
     if (control_mode_ == ControlMode::position)
-        local_pose_pub_ = nh_.advertise<mavros_msgs::PositionTarget>("mavros/setpoint_raw/local", 10);
+        local_pose_pub_ = nh_.advertise<mavros_msgs::PositionTarget>("mavros/setpoint_raw/local", 5);
     else if (control_mode_ == ControlMode::velocity)
-        local_vel_pub_ = nh_.advertise<mavros_msgs::PositionTarget>("mavros/setpoint_raw/local", 10);
+        local_vel_pub_ = nh_.advertise<mavros_msgs::PositionTarget>("mavros/setpoint_raw/local", 5);
     arming_client_ = nh_.serviceClient<mavros_msgs::CommandBool>("mavros/cmd/arming");
     set_mode_client_ = nh_.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
 

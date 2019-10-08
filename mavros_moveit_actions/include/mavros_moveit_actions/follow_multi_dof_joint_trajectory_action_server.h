@@ -70,7 +70,7 @@ public:
         Eigen::Matrix<double, Eigen::Dynamic, 1>& knots);
       
     // publishes position command for given target pose
-    void publishPositionCommand(const geometry_msgs::Pose& cmd_pose); 
+    void publishPositionCommand(const geometry_msgs::Pose& cmd_pose);
 
     // publishes velocity command for given target pose
     void publishVelocityCommand(const geometry_msgs::Pose& cmd_pose);
