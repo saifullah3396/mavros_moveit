@@ -108,7 +108,7 @@ namespace mavros_moveit_utils {
     const mavros_msgs::State& state, 
     const bool& arm,
     ros::ServiceClient& client,
-    const double& timeout = 5.0) 
+    const double& timeout) 
   {
     if (state.armed != arm) {
       mavros_msgs::CommandBool arm_cmd;

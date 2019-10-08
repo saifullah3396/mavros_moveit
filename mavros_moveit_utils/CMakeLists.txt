@@ -6,12 +6,13 @@ add_compile_options(-std=c++11)
 find_package(catkin REQUIRED COMPONENTS 
 	roscpp
 	tf
-	geometry_msgs)
+	geometry_msgs
+	mavros_msgs)
 	
 catkin_package(
 	INCLUDE_DIRS include 
 	LIBRARIES ${PROJECT_NAME}
-	CATKIN_DEPENDS roscpp tf geometry_msgs
+	CATKIN_DEPENDS roscpp tf geometry_msgs mavros_msgs
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
