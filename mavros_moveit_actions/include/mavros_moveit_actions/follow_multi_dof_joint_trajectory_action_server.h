@@ -51,6 +51,7 @@
 #include <string>
 
 #include <mavros_moveit_actions/velocity_control_handler.h>
+#include <mavros_moveit_controllers/SetOffboard.h>
 
 class FollowMultiDofJointTrajectoryActionServer
 {
@@ -69,17 +70,6 @@ public:
         const trajectory_msgs::MultiDOFJointTrajectory& trajectory,
         Eigen::Matrix<double, Eigen::Dynamic, 1>& knots);
       
-    // publishes position command for given target pose
-    void publishPositionCommand(const geometry_msgs::Pose& cmd_pose);
-
-    // publishes velocity command for given target pose
-    void publishVelocityCommand(const geometry_msgs::Pose& cmd_pose);
-    bool targetReached(const tf::Pose& target); // Checkes if the target is within tolerance
-    double getYaw(const tf::Quaternion& q) const; // Returns yaw of quaternion
-    double getYaw(const geometry_msgs::Quaternion& q_msg) const; // Returns yaw of quaternion msg
-    bool setMavMode(const std::string& mode); // Sets mavros mode to given mode
-    bool setArmRequest(const bool& arm); // Arms or disarms the robot
-
     // ros callbacks
     void stateCb(const mavros_msgs::State::ConstPtr& msg); // mavros state callback
     void poseCb(const geometry_msgs::PoseStamped::ConstPtr& msg); // mavros pose callback
@@ -94,12 +84,12 @@ private:
     ros::Subscriber state_sub_; // mavros state subscriber 
 
     // publishers
-    ros::Publisher local_pose_pub_; // mavros position commands publisher
-    ros::Publisher local_vel_pub_; // mavros velocity commands publisher
+    ros::Publisher local_cmd_pose_pub_; // mavros position commands publisher
 
     // services
     ros::ServiceClient arming_client_; // mavros service for arming/disarming the robot
     ros::ServiceClient set_mode_client_; // mavros service for setting mode. Position commands are only available in mode OFFBOARD.
+    ros::ServiceClient set_offboard_client_; // mavros service for setting mode. Position commands are only available in mode OFFBOARD.
 
     // action server
     ActionServer action_server_; // simple actionlib server
@@ -107,19 +97,10 @@ private:
     Result result_; // action server result
     std::string action_name_; // action name
 
-    // control variables
-    mavros_msgs::PositionTarget target_; // mavros target container
     mavros_msgs::State current_state_; // latest mavros state
     geometry_msgs::PoseStamped current_pose_; // latest robot pose
-    ros::Time last_update_time_; // last update time
     double cycle_time_;
-
     const float curr_to_start_pose_time_ = 0.25; // Time for moving from initial pose to start planning pose
-    const float target_pos_tol = {1e-1}; // difference tolerance of position from the target position
-    const float target_orientation_tol = {5e-2}; // // difference tolerance of orientation from the target orientation
-
-    typedef std::unique_ptr<VelocityControlHandler> VelocityControlHandlerPtr;
-    VelocityControlHandlerPtr velocity_control_handler_; // Velocity control handler
 
     enum class ControlMode {
         position,
