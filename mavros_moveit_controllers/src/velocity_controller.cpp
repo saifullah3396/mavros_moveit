@@ -64,33 +64,31 @@ void VelocityController::init()
 
 }
 
-void VelocityController::commandCb(const geometry_msgs::PoseStamped::ConstPtr& cmd_pose) {
-    if (statusCheck()) {
-        target_.header.stamp = ros::Time::now();
-        target_.velocity.x = 
-            computeEffort(
-                CI::x, 
-                cmd_pose->pose.position.x - current_pose_.pose.position.x, 
-                last_update_time_);
-        target_.velocity.y = 
-            computeEffort(
-                CI::y, 
-                cmd_pose->pose.position.y - current_pose_.pose.position.y, 
-                last_update_time_);
-        target_.velocity.z = 
-            computeEffort(
-                CI::z, 
-                cmd_pose->pose.position.z - current_pose_.pose.position.z, 
-                last_update_time_);
-        target_.yaw_rate =
-            computeEffort(
-                CI::yaw, 
-                mavros_moveit_utils::getYaw(cmd_pose->pose.orientation) - 
-                mavros_moveit_utils::getYaw(current_pose_.pose.orientation),
-                last_update_time_);
-        local_raw_pub_.publish(target_);
-        last_update_time_ = ros::Time::now();
-    }
+void VelocityController::generateCommand(const geometry_msgs::PoseStamped& cmd_pose) {
+    target_.header.stamp = ros::Time::now();
+    target_.velocity.x = 
+        computeEffort(
+            CI::x, 
+            cmd_pose.pose.position.x - current_pose_.pose.position.x, 
+            last_update_time_);
+    target_.velocity.y = 
+        computeEffort(
+            CI::y, 
+            cmd_pose.pose.position.y - current_pose_.pose.position.y, 
+            last_update_time_);
+    target_.velocity.z = 
+        computeEffort(
+            CI::z, 
+            cmd_pose.pose.position.z - current_pose_.pose.position.z, 
+            last_update_time_);
+    target_.yaw_rate =
+        computeEffort(
+            CI::yaw, 
+            mavros_moveit_utils::getYaw(cmd_pose.pose.orientation) - 
+            mavros_moveit_utils::getYaw(current_pose_.pose.orientation),
+            last_update_time_);
+    local_raw_pub_.publish(target_);
+    last_update_time_ = ros::Time::now();
 }
 
 void VelocityController::setupController(

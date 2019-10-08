@@ -4,6 +4,7 @@
 #include <mavros_msgs/State.h>
 #include <mavros_msgs/PositionTarget.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <mavros_moveit_controllers/SetOffboard.h>
 
 namespace mavros_moveit_controllers {
 
@@ -18,10 +19,14 @@ public:
     // ros callbacks
     void stateCb(const mavros_msgs::State::ConstPtr& msg); // mavros state callback
     void poseCb(const geometry_msgs::PoseStamped::ConstPtr& msg); // mavros pose callback
-    virtual void commandCb(const geometry_msgs::PoseStamped::ConstPtr& cmd_pose) = 0; // command pose callback
+    void commandCb(const geometry_msgs::PoseStamped::ConstPtr& cmd_pose); // command pose callback
+    bool setOffboard(
+        mavros_moveit_controllers::SetOffboard::Request& req,
+        mavros_moveit_controllers::SetOffboard::Response& res);
 
 protected:
     bool statusCheck();
+    virtual void generateCommand(const geometry_msgs::PoseStamped& cmd_pose) = 0; // command generation
     bool targetReached(const tf::Pose& target);
 
     ros::NodeHandle nh_; // node handle
@@ -34,6 +39,10 @@ protected:
 
     // publishers
     ros::Publisher local_raw_pub_; // mavros raw commands publisher
+
+    // service
+    ros::ServiceServer set_offboard_server_;
+    ros::ServiceClient set_mode_client_; // mavros service for setting mode.
 
     // subscriber checks
     bool state_received_ = {false};

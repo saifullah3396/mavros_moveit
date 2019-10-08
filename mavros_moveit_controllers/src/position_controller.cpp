@@ -23,14 +23,12 @@ void PositionController::init()
 
 }
 
-void PositionController::commandCb(const geometry_msgs::PoseStamped::ConstPtr& cmd_pose) {
-    if (statusCheck()) {
-        target_.header.stamp = ros::Time::now();
-        target_.position = cmd_pose->pose.position;
-        target_.yaw = mavros_moveit_utils::getYaw(cmd_pose->pose.orientation);
-        local_raw_pub_.publish(target_);
-        last_update_time_ = ros::Time::now();
-    }
+void PositionController::generateCommand(const geometry_msgs::PoseStamped& cmd_pose) {
+    target_.header.stamp = ros::Time::now();
+    target_.position = cmd_pose.pose.position;
+    target_.yaw = mavros_moveit_utils::getYaw(cmd_pose.pose.orientation);
+    local_raw_pub_.publish(target_);
+    last_update_time_ = ros::Time::now();
 }
 
 }

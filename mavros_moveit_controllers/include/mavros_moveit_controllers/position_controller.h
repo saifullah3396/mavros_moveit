@@ -11,7 +11,7 @@ public:
     virtual ~PositionController();
 
     void init() override; // Initiates the action server
-    void commandCb(const geometry_msgs::PoseStamped::ConstPtr& cmd_pose) override; // command pose callback
+    void generateCommand(const geometry_msgs::PoseStamped& cmd_pose) override; // command pose callback
 };
 
 }

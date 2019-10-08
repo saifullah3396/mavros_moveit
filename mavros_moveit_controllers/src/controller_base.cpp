@@ -20,11 +20,15 @@ void ControllerBase::init()
     p_nh.param("coordinate_frame", coordinate_frame, (int)mavros_msgs::PositionTarget::FRAME_LOCAL_NED);
     target_.coordinate_frame = coordinate_frame;
 
-    // setup publishers/subscribers/services
+    // setup publishers/subscribers
     state_sub_ = nh_.subscribe<mavros_msgs::State>("mavros/state", 5, &ControllerBase::stateCb, this);
     local_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>("mavros/local_position/pose", 5, &ControllerBase::poseCb, this);
-    local_cmd_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>("mavros/local_position/cmd_pose", 5, &ControllerBase::poseCb, this);
+    local_cmd_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>("mavros_moveit/local_position/cmd_pose", 5, &ControllerBase::poseCb, this);
     local_raw_pub_ = nh_.advertise<mavros_msgs::PositionTarget>("mavros/setpoint_raw/local", 5);
+
+    // services
+    set_mode_client_ = nh_.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
+    set_offboard_server_ = nh_.advertiseService("mavros_moveit/set_offboard", &ControllerBase::setOffboard, this);
 }
 
 ControllerBase* ControllerBase::makeController(const std::string& type) {
@@ -101,6 +105,17 @@ bool ControllerBase::targetReached(const tf::Pose& target) {
     return false;
 }
 
+bool ControllerBase::setOffboard(
+  mavros_moveit_controllers::SetOffboard::Request& req, // dummy res,req
+  mavros_moveit_controllers::SetOffboard::Response& res)
+{
+    // send one command
+    generateCommand(current_pose_);
+
+    // Set vehicle to offboard mode
+    return mavros_moveit_utils::setMavMode(mavros_state_, "OFFBOARD", set_mode_client_);
+}
+
 void ControllerBase::stateCb(const mavros_msgs::State::ConstPtr& mavros_state) {
     mavros_state_ = *mavros_state;
     state_received_ = true;
@@ -109,6 +124,12 @@ void ControllerBase::stateCb(const mavros_msgs::State::ConstPtr& mavros_state) {
 void ControllerBase::poseCb(const geometry_msgs::PoseStamped::ConstPtr& current_pose) {
     current_pose_ = *current_pose;
     pose_received_ = true;
+}
+
+void ControllerBase::commandCb(const geometry_msgs::PoseStamped::ConstPtr& cmd_pose) {
+    if (statusCheck()) {
+        generateCommand(*cmd_pose);
+    }
 }
 
 }
