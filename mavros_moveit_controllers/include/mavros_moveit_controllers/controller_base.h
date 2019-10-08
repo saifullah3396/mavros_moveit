@@ -26,7 +26,13 @@ public:
         mavros_moveit_controllers::SetOffboard::Response& res);
 
 protected:
+    bool connected_status_wait_flag_ = false;
+    bool state_received_wait_flag_ = false;
+    bool pose_received_wait_flag_ = false;
+    bool unarmed_wait_flag_ = false;
+    bool wrong_mode_wait_flag_ = false;
     bool statusCheck();
+    bool conditionCheck(const bool& condition, const std::string& msg, bool& wait_flag);
     virtual void generateCommand(const geometry_msgs::PoseStamped& cmd_pose) = 0; // command generation
     bool targetReached(const tf::Pose& target);
 

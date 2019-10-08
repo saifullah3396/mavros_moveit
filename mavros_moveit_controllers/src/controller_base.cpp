@@ -54,40 +54,67 @@ void ControllerBase::update() {
 bool ControllerBase::statusCheck()
 {
     // is mavros connected to px4?
-    if (!mavros_state_.connected) {
-        ROS_DEBUG("Controller cannot generate command since mavros is not connected to px4.");
+    if (!conditionCheck(
+        mavros_state_.connected, 
+        "Controller cannot generate command since mavros is not connected to px4",
+        connected_status_wait_flag_))
+    {
         return false;
     }
-
+        
     // robot state is received yet?
-    if (!state_received_) {
-        ROS_DEBUG("Controller cannot generate command due to unknown mavros state.");
+    if (!conditionCheck(
+        state_received_, 
+        "Controller cannot generate command due to unknown mavros state",
+        state_received_wait_flag_))
+    {
         return false;
     }
 
-    // robot current pose is received yet?
-    if (!pose_received_) {
-        ROS_DEBUG("Controller cannot generate command due to unknown robot pose.");
+     // robot current pose is received yet?
+    if (!conditionCheck(
+        pose_received_, 
+        "Controller cannot generate command due to unknown robot pose",
+        pose_received_wait_flag_))
+    {
         return false;
     }
 
     // is robot armed?
-    if (!mavros_state_.armed) {
-        ROS_DEBUG("Controller cannot generate command due to unarmed robot.");
+    if (!conditionCheck(
+        mavros_state_.armed, 
+        "Controller cannot generate command due to unarmed robot",
+        unarmed_wait_flag_))
+    {
         return false;
     }
 
-    // is robot armed?
-    if (!mavros_state_.armed) {
-        ROS_DEBUG("Controller cannot generate command due to unarmed robot.");
-        return false;
-    }
-
-    if (mavros_state_.mode != "OFFBOARD") {
-        ROS_DEBUG("Controller cannot generate command unless robot mode is set to OFFBOARD.");
+    if (!conditionCheck(
+        mavros_state_.mode != "OFFBOARD", 
+        "Controller cannot generate command unless robot mode is set to OFFBOARD",
+        wrong_mode_wait_flag_))
+    {
         return false;
     }
     return true;
+}
+
+
+bool ControllerBase::conditionCheck(
+    const bool& condition, 
+    const std::string& msg,
+    bool& wait_flag)
+{
+    if (!condition) { // condition false
+        if (!wait_flag) {
+            ROS_WARN(msg.c_str());
+            wait_flag = true;
+        }
+        return false;
+    } else {
+        wait_flag = false;
+        return true;
+    }
 }
 
 bool ControllerBase::targetReached(const tf::Pose& target) {
@@ -128,7 +155,12 @@ void ControllerBase::poseCb(const geometry_msgs::PoseStamped::ConstPtr& current_
 
 void ControllerBase::commandCb(const geometry_msgs::PoseStamped::ConstPtr& cmd_pose) {
     if (statusCheck()) {
-        generateCommand(*cmd_pose);
+        tf::Quaternion orientation;
+        tf::quaternionMsgToTF(cmd_pose->pose.orientation, orientation);
+        if (orientation.length() == 1.0) // invalid orientation command
+            generateCommand(*cmd_pose);
+        else
+            ROS_WARN("Invalid orientation command given to controller");
     }
 }
 
