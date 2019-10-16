@@ -5,6 +5,7 @@
     <arg name="frame_id"  value="map"/>
     <arg name="point_cloud_topic"  value="/laser/point_cloud"/>
     <arg name="octomap_resolution" default="0.15"/>
+    <arg name="start_octomap_server" default="true"/>
 
     <!-- Launch PX4 Moveit -->
     <include file="$(find mavros_moveit)/launch/px4_mavros.launch">
@@ -29,7 +30,8 @@
     </include>
 
     <!-- OctoMap Server -->
-    <node pkg="octomap_server" type="octomap_server_node" name="octomap_server">
+    <node pkg="octomap_server" type="octomap_server_node" name="octomap_server"
+        if="$(eval start_octomap_server == true)">
         <param name="resolution" value="$(arg octomap_resolution)" />
         <!-- fixed map frame (set to 'map' if SLAM or localization running!) -->
         <param name="frame_id" type="string" value="$(arg frame_id)" />
