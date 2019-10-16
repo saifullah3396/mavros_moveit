@@ -1,0 +1,7 @@
+<launch>
+    <!-- Launch PX4 and Mavros -->
+    <include file="$(find mavros_moveit)/launch/px4_mavros.launch"/>
+
+    <!-- Launch MoveIt -->
+    <include file="$(find mavros_moveit)/launch/mavros_moveit.launch"/>
+</launch>
