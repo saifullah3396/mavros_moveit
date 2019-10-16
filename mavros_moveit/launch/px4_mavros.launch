@@ -11,7 +11,7 @@
     <!-- vehicle model and world -->
     <arg name="est" default="ekf2"/>
     <arg name="vehicle" default="iris"/>
-    <arg name="world" default="$(find px4)/Tools/sitl_gazebo/worlds/uneven.world" />
+    <arg name="world" default="$(find px4)/Tools/sitl_gazebo/worlds/small_indoor_scenario.world" />
     <arg name="sdf" default="$(find px4)/Tools/sitl_gazebo/models/$(arg vehicle)/$(arg vehicle).sdf"/>
 
     <!-- gazebo configs -->
