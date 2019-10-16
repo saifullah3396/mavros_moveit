@@ -35,7 +35,21 @@ cd ~/catkin_ws
 catkin_make
 source ~/catkin_ws/devel/setup.bash
 ```
-- Run px4 and mavros along with moveit using the launch file. The example uses iris but can be updated for use with other vehicles:
+
+### Test mavros_moveit
+
 ```
-roslaunch mavros_moveit px4_iris_moveit.launch
+- Run px4, mavros moveit using the launch file. The example uses iris but can be updated for use with other vehicles:
+```
+roslaunch mavros_moveit px4_mavros_moveit.launch
+```
+
+### Test mavros_moveit_avoidance with depth camera sensor
+```
+roslaunch mavros_moveit_avoidance px4_indoor_iris_depth.launch
+```
+
+### Test mavros_moveit_avoidance with rplidar sensor
+```
+roslaunch mavros_moveit_avoidance px4_indoor_iris_rplidar.launch
 ```
