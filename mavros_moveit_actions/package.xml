@@ -11,6 +11,7 @@
   <depend>mavros_msgs</depend>
   <depend>control_msgs</depend>
   <depend>trajectory_msgs</depend>
+  <depend>mavros_moveit_utils</depend>
   <exec_depend>message_generation</exec_depend>
   <export>
   </export>
