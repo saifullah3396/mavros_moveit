@@ -52,11 +52,15 @@ void VelocityController::generateCommand(const geometry_msgs::PoseStamped& cmd_p
             CI::z, 
             cmd_pose.pose.position.z - current_pose_.pose.position.z, 
             last_update_time_);
+    tf::Pose tf_curr, tf_cmd;
+    tf::poseMsgToTF(current_pose_.pose, tf_curr);
+    tf::poseMsgToTF(cmd_pose.pose, tf_cmd);
+    auto diff_t = tf_curr.inverseTimes(tf_cmd);
+    auto diff_yaw = mavros_moveit_utils::getYaw(diff_t.getRotation());
     target_.yaw_rate =
         computeEffort(
             CI::yaw, 
-            mavros_moveit_utils::getYaw(cmd_pose.pose.orientation) - 
-            mavros_moveit_utils::getYaw(current_pose_.pose.orientation),
+            diff_yaw,
             last_update_time_);
     local_raw_pub_.publish(target_);
     last_update_time_ = ros::Time::now();
