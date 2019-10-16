@@ -2,7 +2,7 @@
     <arg name="world" default="$(find px4)/Tools/sitl_gazebo/worlds/small_indoor_scenario.world" />
     <arg name="gui" default="false"/>
     <arg name="vehicle" default="iris_rplidar"/>
-    <arg name="frame_id"  value="map"/>
+    <arg name="frame_id"  default="map"/>
     <arg name="point_cloud_topic"  value="/laser/point_cloud"/>
     <arg name="octomap_resolution" default="0.15"/>
     <arg name="start_octomap_server" default="true"/>

@@ -3,8 +3,8 @@
     <arg name="gui" default="false" />
     <arg name="debug" default="false" />
     <arg name="vehicle" default="iris_depth_camera"/>
-    <arg name="frame_id"  value="map"/>
-    <arg name="point_cloud_topic"  value="/camera/depth/points"/>
+    <arg name="frame_id"  default="map"/>
+    <arg name="point_cloud_topic"  default="/camera/depth/points"/>
     <arg name="octomap_resolution" default="0.15"/>
     <arg name="start_octomap_server" default="true"/>
 
