@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- launches Gazebo environment, and spawns vehicle -->
+
+    <!-- vehicle model and world -->
+    <arg name="vehicle" default="iris"/>
+    <arg name="world" default="$(find px4)/Tools/sitl_gazebo/worlds/empty.world"/>
+    <arg name="sdf" default="$(find px4)/Tools/sitl_gazebo/models/$(arg vehicle)/$(arg vehicle).sdf"/>
+    
+    <!-- vehicle pose -->
+    <arg name="x" default="0"/>
+    <arg name="y" default="0"/>
+    <arg name="z" default="0"/>
+    <arg name="R" default="0"/>
+    <arg name="P" default="0"/>
+    <arg name="Y" default="0"/>
+    
+    <!-- gazebo model -->
+    <node name="$(anon vehicle_spawn)" pkg="gazebo_ros" type="spawn_model" output="screen" args="-sdf -file $(arg sdf) -model $(arg vehicle) -x $(arg x) -y $(arg y) -z $(arg z) -R $(arg R) -P $(arg P) -Y $(arg Y)"/>
+</launch>
