@@ -26,9 +26,4 @@
     <param name="rate" value="$(arg action_server_rate)"/>
     <param name="control_mode" value="$(arg controller_type)"/>
   </node>
-			
-  <!-- Turn off failsafes for simulations -->
-  <!--<node name="initialize_px4_params" pkg="mavros_moveit" type="initialize_px4_params" launch-prefix="bash -c 'sleep $(arg px4_start_delay); $0 $@'"/>-->
-  <!-- Currently it is done at px4 startup, see etc/init.d-posix/10016_iris_sim -->
-
 </launch>
