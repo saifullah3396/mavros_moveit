@@ -81,7 +81,7 @@
         <arg name="respawn_mavros" default="$(arg respawn_mavros)" />
     </include>
 
-    <arg name="rvizconfig" default="$(find mavros)/rviz/visualize_mavros.rviz" />
+    <arg name="rvizconfig" default="$(find mavros_moveit)/rviz/visualize_mavros.rviz" />
     <!-- launch rviz for visualization -->
     <include file="$(find mavros_moveit)/launch/mavros_visualization.launch">
         <arg name="rvizconfig" default="$(arg rvizconfig)" />
