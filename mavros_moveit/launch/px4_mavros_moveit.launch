@@ -1,6 +1,10 @@
 <launch>
+    <arg name="rvizconfig" default="$(find mavros_moveit)/rviz/mavros_moveit.rviz" />
+
     <!-- Launch PX4 and Mavros -->
-    <include file="$(find mavros_moveit)/launch/px4_mavros.launch"/>
+    <include file="$(find mavros_moveit)/launch/px4_mavros.launch">
+        <arg name="rvizconfig" value="$(find mavros_moveit)/rviz/mavros_moveit.rviz" />
+    </include>
 
     <!-- Launch MoveIt -->
     <include file="$(find mavros_moveit)/launch/mavros_moveit.launch"/>
