@@ -46,6 +46,11 @@ ControllerBase* ControllerBase::makeController(const std::string& type) {
 
 void ControllerBase::update() {
     while(ros::ok()){
+        if (statusCheck()) {
+            if (last_cmd_pose_.header.stamp.toSec() > 0) {
+                generateCommand(last_cmd_pose_);
+            }
+        }
         ros::spinOnce();
         rate_.sleep();
     }
@@ -156,13 +161,13 @@ void ControllerBase::poseCb(const geometry_msgs::PoseStamped::ConstPtr& current_
 }
 
 void ControllerBase::commandCb(const geometry_msgs::PoseStamped::ConstPtr& cmd_pose) {
-    if (statusCheck()) {
-        tf::Quaternion orientation;
-        tf::quaternionMsgToTF(cmd_pose->pose.orientation, orientation);
-        //if (orientation.length() == 1.0) // invalid orientation command
-            generateCommand(*cmd_pose);
-        //else
-        //    ROS_WARN("Invalid orientation command given to controller");
+    tf::Quaternion orientation;
+    tf::quaternionMsgToTF(cmd_pose->pose.orientation, orientation);
+    if (fabsf(orientation.length() - 1.0) < 1e-5) {// invalid orientation command
+        last_cmd_pose_ = *cmd_pose;
+        last_cmd_pose_.header.stamp = ros::Time::now();
+    } else {
+        ROS_WARN("Invalid orientation command given to controller");
     }
 }
 

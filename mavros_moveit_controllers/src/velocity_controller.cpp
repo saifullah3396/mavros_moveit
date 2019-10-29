@@ -36,7 +36,6 @@ void VelocityController::init()
 }
 
 void VelocityController::generateCommand(const geometry_msgs::PoseStamped& cmd_pose) {
-    target_.header.stamp = ros::Time::now();
     target_.velocity.x = 
         computeEffort(
             CI::x, 
@@ -63,7 +62,8 @@ void VelocityController::generateCommand(const geometry_msgs::PoseStamped& cmd_p
             diff_yaw,
             last_update_time_);
     local_raw_pub_.publish(target_);
-    last_update_time_ = ros::Time::now();
+    target_.header.stamp = ros::Time::now();
+    last_update_time_ = target_.header.stamp;
 }
 
 void VelocityController::setupController(
