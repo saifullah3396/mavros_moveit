@@ -137,11 +137,12 @@ void FollowMultiDofJointTrajectoryActionServer::executeCb(const GoalPtr &goal) {
         success = false;
     }
 
-    // Set mode to loiter since keeping it in offboard requires sending commands
+    /*// Set mode to loiter since keeping it in offboard requires sending commands
     // continuously
     if (!mavros_moveit_utils::setMavMode(current_state_, "AUTO.LOITER", set_mode_client_))
         action_server_.setAborted();
-
+    */
+   
     if(success)
     {
         result_.error_code = Result::SUCCESSFUL;
