@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
 	message_generation
 	control_msgs
 	control_toolbox
+	mavros_moveit_controllers
 	mavros_moveit_utils)
 	
 find_package(Boost REQUIRED COMPONENTS system)
@@ -31,7 +32,7 @@ generate_messages(
 )
 
 catkin_package(
-    CATKIN_DEPENDS roscpp actionlib_msgs mavros_msgs trajectory_msgs
+    CATKIN_DEPENDS roscpp actionlib_msgs mavros_msgs trajectory_msgs mavros_moveit_controllers
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
