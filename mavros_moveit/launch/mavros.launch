@@ -1,6 +1,7 @@
 <launch>
     <!-- mavros config -->
     <arg name="ns" default="/"/>
+    <arg name="output" default="log"/>
     <arg name="fcu_protocol" default="v2.0" />
     <arg name="fcu_url" default="udp://:14540@localhost:14557"/>
     <arg name="respawn_mavros" default="false"/>
@@ -19,6 +20,7 @@
         <arg name="tgt_system" value="$(arg tgt_system)" />
         <arg name="tgt_component" value="$(arg tgt_component)" />
         <arg name="fcu_protocol" value="$(arg fcu_protocol)" />
-        <arg name="respawn_mavros" default="$(arg respawn_mavros)" />
+        <arg name="respawn_mavros" value="$(arg respawn_mavros)" />
+        <arg name="log_output" value="$(arg output)" />
     </include>
 </launch>

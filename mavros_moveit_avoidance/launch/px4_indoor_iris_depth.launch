@@ -1,22 +1,20 @@
 <launch>
-    <arg name="world" default="$(find px4)/Tools/sitl_gazebo/worlds/small_indoor_scenario.world" />
+    <arg name="world" default="$(find px4)/Tools/sitl_gazebo/worlds/uneven.world" />
     <arg name="gui" default="false" />
     <arg name="debug" default="false" />
     <arg name="vehicle" default="iris_depth_camera"/>
     <arg name="frame_id"  default="map"/>
-    <arg name="point_cloud_topic"  default="/camera/depth/points"/>
+    <arg name="point_cloud_topic"  default="depth/points"/>
     <arg name="octomap_resolution" default="0.15"/>
     <arg name="start_octomap_server" default="true"/>
+    <arg name="rvizconfig" default="$(find mavros_moveit)/rviz/mavros_moveit.rviz" />
 
     <!-- Launch PX4 Moveit -->
     <include file="$(find mavros_moveit)/launch/px4_mavros.launch">
         <arg name="gui" value="$(arg gui)"/>
         <arg name="world" value="$(arg world)" />
         <arg name="vehicle" value="$(arg vehicle)"/>
-        <!--<arg name="x" value="-2.0"/>
-        <arg name="y" value="0.0"/>
-        <arg name="z" value="0.1"/>
-        <arg name="Y" value="3.14"/>-->
+        <arg name="rvizconfig" value="$(find mavros_moveit)/rviz/mavros_moveit.rviz" />
     </include>
 
     <include file="$(find mavros_moveit)/launch/mavros_moveit.launch">
@@ -55,8 +53,18 @@
         <!-- Filter out obstacles which are lower than 1 meter -->
         <param name="occupancy_min_z" value="1.0" />
         <param name="height_map" value="false" />
-        <param name="publish_free_space" value="false" />
+        <param name="publish_free_space" value="true" />
         <!-- data source to integrate (PointCloud2) -->
         <remap from="cloud_in" to="$(arg point_cloud_topic)" />
     </node>
+
+    <!-- Start the vfh3d local planner node -->
+    <!--<include file="$(find vfh3d)/launch/vfh3d_planner.launch">
+        <arg name="debug" value="$(arg debug)" />
+        <arg name="octomap_topic" value="/octomap_binary"/>
+        <arg name="hist_resolution" value="0.087222222" />
+        <arg name="max_plan_range" value="3.0" />
+        <arg name="map_resolution" value="$(arg octomap_resolution)" />
+        <arg name="const_a" value="10.0" />
+    </include>-->
 </launch>

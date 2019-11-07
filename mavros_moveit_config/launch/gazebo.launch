@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <launch>
+  <arg name="output" default="log"/>
   <arg name="paused" default="false"/>
   <arg name="gazebo_gui" default="true"/>
   <arg name="urdf_path" default="$(find rotors_description)/urdf/iris.xacro"/>
@@ -16,7 +17,7 @@
 
   <!-- push robot_description to factory and spawn robot in gazebo at the origin, change x,y,z arguments to spawn in a different position -->
   <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model robot -x 0 -y 0 -z 0"
-    respawn="false" output="screen" />
+    respawn="false" output="$(arg output)" />
 
   <include file="$(find mavros_moveit_config)/launch/ros_controllers.launch"/>
 

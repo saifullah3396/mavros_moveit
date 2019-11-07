@@ -8,6 +8,7 @@
     <arg name="debug" default="false"/>
     <arg name="verbose" default="false"/>
     <arg name="paused" default="false"/>
+    <arg name="output" default="log"/>
     <arg name="respawn_gazebo" default="false"/>
 
     <!-- Gazebo sim -->

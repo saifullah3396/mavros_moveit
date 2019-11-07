@@ -1,11 +1,12 @@
 <launch>
   <!-- Arguments -->
+  <arg name="output" default="log"/>
   <arg name="base_frame" default="base_link"/>
   <arg name="laser_scan_topic" default="/laser/scan"/>
   <arg name="point_cloud_topic"  default="/laser/point_cloud"/>
 
   <!-- Laser scan to point cloud -->
-  <node pkg="mavros_moveit_avoidance" type="laser_to_pc_node" name="laser_to_pc_node" output="screen">
+  <node pkg="mavros_moveit_avoidance" type="laser_to_pc_node" name="laser_to_pc_node" output="$(arg output)">
     <param name="base_frame" value="$(arg base_frame)"/>
     <param name="laser_scan_topic" value="$(arg laser_scan_topic)"/>
     <param name="point_cloud_topic"  value="$(arg point_cloud_topic)"/>

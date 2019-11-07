@@ -2,6 +2,7 @@
 <launch>
 
   <!-- Debug Info -->
+  <arg name="output" default="log"/>
   <arg name="debug" default="false" />
   <arg unless="$(arg debug)" name="launch_prefix" value="" />
   <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
@@ -10,6 +11,6 @@
   <node pkg="moveit_setup_assistant" type="moveit_setup_assistant" name="moveit_setup_assistant"
 	args="--config_pkg=mavros_moveit_config"
 	launch-prefix="$(arg launch_prefix)"
-        output="screen" />
+        output="$(arg output)" />
 
 </launch>

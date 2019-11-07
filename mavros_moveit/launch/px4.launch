@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
 <launch>
+    <arg name="output" default="log"/>
+    
     <!-- PX4 config arguments -->
     <arg name="est" default="ekf2"/>
     <arg name="vehicle" default="iris"/>
@@ -11,6 +13,6 @@
     <!-- PX4 SITL -->
     <arg unless="$(arg interactive)" name="px4_command_arg1" value="-d"/>
     <arg     if="$(arg interactive)" name="px4_command_arg1" value=""/>
-    <node name="sitl" pkg="px4" type="px4" output="screen"
+    <node name="sitl" pkg="px4" type="px4" output="$(arg output)"
         args="$(find px4)/ROMFS/px4fmu_common -s etc/init.d-posix/rcS $(arg px4_command_arg1)" required="true"/>
 </launch>

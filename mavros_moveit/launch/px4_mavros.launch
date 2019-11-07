@@ -55,9 +55,6 @@
         <arg name="interactive" value="$(arg interactive)"/>
     </include>
 
-    <!-- static transform for map to local frame used by mavros -->
-	<node pkg="tf" type="static_transform_publisher" name="map_to_local" args="0.0 0.0 0.0 0.0 0.0 0.0 /map /local_origin  100" />
-
     <!-- mavros config -->
 	<arg name="ns" default="/"/>
     <arg name="fcu_protocol" default="v2.0" />
@@ -81,9 +78,12 @@
         <arg name="respawn_mavros" default="$(arg respawn_mavros)" />
     </include>
 
+    <arg name="visualize" default="false" />
     <arg name="rvizconfig" default="$(find mavros_moveit)/rviz/visualize_mavros.rviz" />
-    <!-- launch rviz for visualization -->
-    <include file="$(find mavros_moveit)/launch/mavros_visualization.launch">
-        <arg name="rvizconfig" default="$(arg rvizconfig)" />
-    </include>
+    <group if="$(arg visualize)">
+        <!-- launch rviz for visualization -->
+        <include file="$(find mavros_moveit)/launch/mavros_visualization.launch">
+            <arg name="rvizconfig" default="$(arg rvizconfig)" />
+        </include>
+    </group>
 </launch>
