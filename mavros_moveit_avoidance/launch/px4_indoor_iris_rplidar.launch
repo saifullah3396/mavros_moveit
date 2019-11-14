@@ -52,4 +52,25 @@
         <!-- data source to integrate (PointCloud2) -->
         <remap from="cloud_in" to="$(arg point_cloud_topic)" />
     </node>
+
+    <group if="$(arg use_local_planning)"/>
+        <arg name="octomap_topic" default="/octomap_binary"/>
+        <arg name="hist_resolution" default="0.087222222" />
+        <arg name="max_plan_range" default="3.0" />
+        <arg name="const_a" default="10.0" />
+        
+        <!-- Start the vfh3d node -->
+        <node name="vfh3d_node" pkg="vfh3d" type="vfh3d_node" output="$(arg output)" launch-prefix="$(arg launch_prefix)">
+        <param name="octomap_topic" value="$(arg octomap_topic)" />
+        <param name="hist_resolution" value="$(arg hist_resolution)" />
+        <param name="map_resolution" value="$(arg octomap_resolution)" />
+        <param name="max_plan_range" value="$(arg max_plan_range)" />
+        <param name="const_a" value="$(arg const_a)" />
+        <param name="pose_topic" value="/mavros/local_position/pose" />
+        <param name="target_vel_topic" value="/vfh3d/target_vel" />
+        <param name="vehicle_safety_radius" value="0.2" />
+        <param name="turning_radius_l" value="0.2" />
+        <param name="turning_radius_r" value="0.2" />
+        </node>
+    </group>
 </launch>

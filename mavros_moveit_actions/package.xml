@@ -13,6 +13,7 @@
   <depend>trajectory_msgs</depend>
   <depend>mavros_moveit_utils</depend>
   <depend>mavros_moveit_controllers</depend>
+  <depend>vfh3d</depend>
   <exec_depend>message_generation</exec_depend>
   <export>
   </export>

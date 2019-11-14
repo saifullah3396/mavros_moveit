@@ -2,23 +2,28 @@
     <arg name="world" default="$(find px4)/Tools/sitl_gazebo/worlds/uneven.world" />
     <arg name="gui" default="false" />
     <arg name="debug" default="false" />
+    <arg name="output" default="screen" />
     <arg name="vehicle" default="iris_depth_camera"/>
     <arg name="frame_id"  default="map"/>
-    <arg name="point_cloud_topic"  default="depth/points"/>
+    <arg name="point_cloud_topic"  default="/camera/depth/points"/>
     <arg name="octomap_resolution" default="0.15"/>
     <arg name="start_octomap_server" default="true"/>
     <arg name="rvizconfig" default="$(find mavros_moveit)/rviz/mavros_moveit.rviz" />
+    <arg name="visualize" default="true" />
+    <arg name="use_local_planning" default="false" />
 
     <!-- Launch PX4 Moveit -->
     <include file="$(find mavros_moveit)/launch/px4_mavros.launch">
         <arg name="gui" value="$(arg gui)"/>
         <arg name="world" value="$(arg world)" />
         <arg name="vehicle" value="$(arg vehicle)"/>
+        <arg name="visualize" value="$(arg visualize)"/>
         <arg name="rvizconfig" value="$(find mavros_moveit)/rviz/mavros_moveit.rviz" />
     </include>
 
     <include file="$(find mavros_moveit)/launch/mavros_moveit.launch">
         <arg name="octomap_resolution" value="$(arg octomap_resolution)"/>
+        <arg name="use_local_planning" value="$(arg use_local_planning)"/>
     </include>
 
     <node pkg="tf" type="static_transform_publisher" name="camera_link_broadcaster_0" args="0 0 0 -1.57 0 -1.57 base_link /camera_link 100" />
@@ -35,8 +40,7 @@
     <node name="launch_gmapping" pkg="mavros_moveit_avoidance" type="launch_gmapping"/>
 
     <!-- OctoMap Server -->
-    <node pkg="octomap_server" type="octomap_server_node" name="octomap_server"
-        if="$(eval start_octomap_server == true)">
+    <node pkg="octomap_server" type="octomap_server_node" name="octomap_server" if="$(eval start_octomap_server == true)">
         <param name="resolution" value="$(arg octomap_resolution)" />
         <!-- fixed map frame (set to 'map' if SLAM or localization running!) -->
         <param name="frame_id" type="string" value="$(arg frame_id)" />
@@ -51,20 +55,26 @@
         <param name="color/b" value="0.1" />
         <param name="color/a" value="1.0" />
         <!-- Filter out obstacles which are lower than 1 meter -->
-        <param name="occupancy_min_z" value="1.0" />
+        <param name="occupancy_min_z" value="0.0" />
         <param name="height_map" value="false" />
         <param name="publish_free_space" value="true" />
         <!-- data source to integrate (PointCloud2) -->
         <remap from="cloud_in" to="$(arg point_cloud_topic)" />
     </node>
 
-    <!-- Start the vfh3d local planner node -->
-    <!--<include file="$(find vfh3d)/launch/vfh3d_planner.launch">
-        <arg name="debug" value="$(arg debug)" />
-        <arg name="octomap_topic" value="/octomap_binary"/>
-        <arg name="hist_resolution" value="0.087222222" />
-        <arg name="max_plan_range" value="3.0" />
-        <arg name="map_resolution" value="$(arg octomap_resolution)" />
-        <arg name="const_a" value="10.0" />
-    </include>-->
+    <group if="$(arg use_local_planning)">
+        <arg name="octomap_topic" default="/octomap_binary"/>
+        <arg name="hist_resolution" default="0.087222222" />
+        <arg name="max_plan_range" default="3.0" />
+        <arg name="const_a" default="10.0" />
+
+        <!-- Start the vfh3d node -->
+        <include file="$(find vfh3d)/launch/vfh3d_planner.launch">
+            <arg name="octomap_topic" value="$(arg octomap_topic)" />
+            <arg name="hist_resolution" value="$(arg hist_resolution)" />
+            <arg name="map_resolution" value="$(arg octomap_resolution)" />
+            <arg name="max_plan_range" value="$(arg max_plan_range)" />
+            <arg name="const_a" value="$(arg const_a)" />
+        </include>
+    </group>
 </launch>

@@ -1,12 +1,14 @@
 <?xml version="1.0"?>
 
 <launch>
-  <arg name="output" default="log"/>
+  <arg name="output" default="screen"/>
   <arg name="controller_type" default="velocity"/>
   <arg name="debug" default="false" />
   <arg name="octomap_resolution" default="0.15"/>
   <arg name="action_server_rate" default="50"/>
   <arg name="px4_start_delay" default="20"/>
+  <arg name="use_local_planning" default="true" />
+  <arg name="pub_target_direction" default="true" />
 
   <!-- Start the moveit move group -->
   <include file="$(find mavros_moveit_config)/launch/move_group.launch">
@@ -26,5 +28,7 @@
   <node name="follow_multi_dof_joint_trajectory_action_server" pkg="mavros_moveit_actions" type="follow_multi_dof_joint_trajectory_action_server" output="$(arg output)">
     <param name="rate" value="$(arg action_server_rate)"/>
     <param name="control_mode" value="$(arg controller_type)"/>
+    <param name="use_local_planning" value="$(arg use_local_planning)"/>
+    <param name="pub_target_direction" value="$(arg pub_target_direction)"/>
   </node>
 </launch>

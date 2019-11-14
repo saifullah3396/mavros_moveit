@@ -15,7 +15,8 @@ find_package(catkin REQUIRED COMPONENTS
 	control_msgs
 	control_toolbox
 	mavros_moveit_controllers
-	mavros_moveit_utils)
+	mavros_moveit_utils
+	vfh3d)
 	
 find_package(Boost REQUIRED COMPONENTS system)
 add_action_files(
@@ -38,3 +39,4 @@ catkin_package(
 include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 add_executable(follow_multi_dof_joint_trajectory_action_server src/follow_multi_dof_joint_trajectory_action_server.cpp)
 target_link_libraries(follow_multi_dof_joint_trajectory_action_server ${catkin_LIBRARIES})
+add_dependencies(follow_multi_dof_joint_trajectory_action_server ${catkin_EXPORTED_TARGETS})

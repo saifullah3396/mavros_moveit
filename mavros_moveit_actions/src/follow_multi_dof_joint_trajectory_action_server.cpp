@@ -50,6 +50,7 @@
 
 #include <mavros_moveit_utils/utils.h>
 #include <mavros_moveit_actions/follow_multi_dof_joint_trajectory_action_server.h>
+#include <vfh3d/CorrectTarget.h>
 
 FollowMultiDofJointTrajectoryActionServer::FollowMultiDofJointTrajectoryActionServer(const std::string& name) : 
     action_name_(name), 
@@ -67,6 +68,8 @@ void FollowMultiDofJointTrajectoryActionServer::init() {
 
     std::string control_mode;
     p_nh.param<std::string>("control_mode", control_mode, "velocity");
+    p_nh.param<bool>("use_local_planning", use_local_planning_, false);
+    p_nh.param<bool>("pub_target_direction", pub_target_direction_, false);
 
     state_sub_ = 
         nh_.subscribe<mavros_msgs::State>(
@@ -78,6 +81,23 @@ void FollowMultiDofJointTrajectoryActionServer::init() {
     arming_client_ = nh_.serviceClient<mavros_msgs::CommandBool>("mavros/cmd/arming");
     set_mode_client_ = nh_.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
     set_offboard_client_ = nh_.serviceClient<mavros_moveit_controllers::SetOffboard>("mavros_moveit/set_offboard");
+
+    if (use_local_planning_) {
+        if (ros::service::waitForService("/vfh3d/correct_target", 5.0)) {
+            vfh3d_client_ = nh_.serviceClient<vfh3d::CorrectTarget>("/vfh3d/correct_target");
+            target_direction_pub_ = nh_.advertise<geometry_msgs::TwistStamped>("/mavros_moveit/target_direction", 1); 
+            target_direction_fix_pub_ = nh_.advertise<geometry_msgs::TwistStamped>("/mavros_moveit/corrected_direction", 1); 
+            target_direction_.header.frame_id = "base_link";
+        } else {
+            ROS_WARN("Local planner is not available. Continuing without it.");
+            use_local_planning_ = false;
+        }
+    }
+    
+    if (!use_local_planning_ && pub_target_direction_) {
+        target_direction_pub_ = nh_.advertise<geometry_msgs::TwistStamped>("/mavros_moveit/target_direction", 1); 
+        target_direction_.header.frame_id = "base_link";
+    }
 
     // start the action server
     action_server_.start();
@@ -124,6 +144,41 @@ void FollowMultiDofJointTrajectoryActionServer::executeCb(const GoalPtr &goal) {
             cmd_pose.pose.orientation.x = interp_orientation.x();
             cmd_pose.pose.orientation.y = interp_orientation.y();
             cmd_pose.pose.orientation.z = interp_orientation.z();
+
+            if (use_local_planning_) {
+                target_direction_.twist.linear.x = cmd_pose.pose.position.x - current_pose_.pose.position.x;
+                target_direction_.twist.linear.y = cmd_pose.pose.position.y - current_pose_.pose.position.y;
+                target_direction_.twist.linear.z = cmd_pose.pose.position.z - current_pose_.pose.position.z;
+                auto mag = sqrt(pow(target_direction_.twist.linear.x, 2) +
+                    pow(target_direction_.twist.linear.y, 2) +
+                    pow(target_direction_.twist.linear.z, 2));
+                target_direction_.twist.linear.x /= mag;
+                target_direction_.twist.linear.y /= mag;
+                target_direction_.twist.linear.z /= mag;
+                target_direction_.header.stamp = ros::Time::now();
+                target_direction_pub_.publish(target_direction_);
+                vfh3d::CorrectTarget correct_target_srv;
+                correct_target_srv.request.target_vel = target_direction_;
+                if (vfh3d_client_.call(correct_target_srv)) {
+                    correct_target_srv.response.corrected_vel.header.frame_id = "map";
+                    target_direction_fix_pub_.publish(correct_target_srv.response.corrected_vel);
+                }
+            }
+
+            if (!use_local_planning_ && pub_target_direction_) {
+                target_direction_.twist.linear.x = cmd_pose.pose.position.x - current_pose_.pose.position.x;
+                target_direction_.twist.linear.y = cmd_pose.pose.position.y - current_pose_.pose.position.y;
+                target_direction_.twist.linear.z = cmd_pose.pose.position.z - current_pose_.pose.position.z;
+                auto mag = sqrt(pow(target_direction_.twist.linear.x, 2) +
+                    pow(target_direction_.twist.linear.y, 2) +
+                    pow(target_direction_.twist.linear.z, 2));
+                target_direction_.twist.linear.x /= mag;
+                target_direction_.twist.linear.y /= mag;
+                target_direction_.twist.linear.z /= mag;
+                target_direction_.header.stamp = ros::Time::now();
+                target_direction_pub_.publish(target_direction_);
+            }
+
             local_cmd_pose_pub_.publish(cmd_pose);
             feedback_.current_pose = cmd_pose;
             action_server_.publishFeedback(feedback_);
@@ -136,12 +191,6 @@ void FollowMultiDofJointTrajectoryActionServer::executeCb(const GoalPtr &goal) {
         action_server_.setAborted();
         success = false;
     }
-
-    /*// Set mode to loiter since keeping it in offboard requires sending commands
-    // continuously
-    if (!mavros_moveit_utils::setMavMode(current_state_, "AUTO.LOITER", set_mode_client_))
-        action_server_.setAborted();
-    */
    
     if(success)
     {

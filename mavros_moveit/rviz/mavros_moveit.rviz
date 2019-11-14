@@ -19,6 +19,7 @@ Panels:
         - /MarkerArray2
         - /Axes1
         - /PointStamped1
+        - /TwistStamped1
       Splitter Ratio: 0.5007112622261047
     Tree Height: 146
   - Class: rviz/Selection
@@ -265,7 +266,7 @@ Visualization Manager:
       Marker Topic: /vis_frontiers
       Name: MarkerArray
       Namespaces:
-        fbe3d: true
+        {}
       Queue Size: 10
       Value: true
     - Alpha: 0.699999988079071
@@ -315,6 +316,16 @@ Visualization Manager:
       Topic: /goal_frontier
       Unreliable: false
       Value: true
+    - Class: jsk_rviz_plugin/TwistStamped
+      Enabled: true
+      Name: TwistStamped
+      Topic: /mavros_moveit/target_direction
+      Unreliable: false
+      Value: true
+      angular color: 255; 0; 0
+      angular scale: 1
+      linear color: 0; 255; 0
+      linear scale: 0.10000000149011612
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -343,25 +354,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 4.242461681365967
+      Distance: 11.263731002807617
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 1.1959025859832764
-        Y: -2.0744082927703857
-        Z: 2.1320273876190186
+        X: -0.30150479078292847
+        Y: -1.2103183269500732
+        Z: -0.035272590816020966
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.42479363083839417
+      Pitch: 0.46479368209838867
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.785412073135376
+      Yaw: 2.940408229827881
     Saved: ~
 Window Geometry:
   Displays:
@@ -384,4 +395,4 @@ Window Geometry:
     collapsed: true
   Width: 1600
   X: 0
-  Y: 180
+  Y: 0

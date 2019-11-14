@@ -1,7 +1,7 @@
 <launch>
     <!-- mavros config -->
     <arg name="ns" default="/"/>
-    <arg name="output" default="log"/>
+    <arg name="output" default="screen"/>
     <arg name="fcu_protocol" default="v2.0" />
     <arg name="fcu_url" default="udp://:14540@localhost:14557"/>
     <arg name="respawn_mavros" default="false"/>

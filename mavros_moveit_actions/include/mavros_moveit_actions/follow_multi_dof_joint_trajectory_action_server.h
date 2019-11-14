@@ -84,12 +84,15 @@ private:
     ros::Subscriber state_sub_; // mavros state subscriber 
 
     // publishers
-    ros::Publisher local_cmd_pose_pub_; // mavros position commands publisher
+    ros::Publisher local_cmd_pose_pub_; // position commands publisher
+    ros::Publisher target_direction_pub_;
+    ros::Publisher target_direction_fix_pub_;
 
     // services
     ros::ServiceClient arming_client_; // mavros service for arming/disarming the robot
     ros::ServiceClient set_mode_client_; // mavros service for setting mode. Position commands are only available in mode OFFBOARD.
     ros::ServiceClient set_offboard_client_; // mavros service for setting mode. Position commands are only available in mode OFFBOARD.
+    ros::ServiceClient vfh3d_client_;
 
     // action server
     ActionServer action_server_; // simple actionlib server
@@ -101,6 +104,9 @@ private:
     geometry_msgs::PoseStamped current_pose_; // latest robot pose
     double cycle_time_;
     const float curr_to_start_pose_time_ = 0.25; // Time for moving from initial pose to start planning pose
+    bool use_local_planning_;
+    bool pub_target_direction_;
+    geometry_msgs::TwistStamped target_direction_;
 
     enum class ControlMode {
         position,
