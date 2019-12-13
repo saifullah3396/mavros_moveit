@@ -92,7 +92,6 @@ private:
     ros::ServiceClient arming_client_; // mavros service for arming/disarming the robot
     ros::ServiceClient set_mode_client_; // mavros service for setting mode. Position commands are only available in mode OFFBOARD.
     ros::ServiceClient set_offboard_client_; // mavros service for setting mode. Position commands are only available in mode OFFBOARD.
-    ros::ServiceClient vfh3d_client_;
 
     // action server
     ActionServer action_server_; // simple actionlib server

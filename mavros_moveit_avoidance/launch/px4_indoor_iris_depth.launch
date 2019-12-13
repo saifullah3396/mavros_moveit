@@ -1,5 +1,5 @@
 <launch>
-    <arg name="world" default="$(find px4)/Tools/sitl_gazebo/worlds/uneven.world" />
+    <arg name="world" default="$(find px4)/Tools/sitl_gazebo/worlds/empty.world" />
     <arg name="gui" default="false" />
     <arg name="debug" default="false" />
     <arg name="output" default="screen" />
@@ -23,7 +23,6 @@
 
     <include file="$(find mavros_moveit)/launch/mavros_moveit.launch">
         <arg name="octomap_resolution" value="$(arg octomap_resolution)"/>
-        <arg name="use_local_planning" value="$(arg use_local_planning)"/>
     </include>
 
     <node pkg="tf" type="static_transform_publisher" name="camera_link_broadcaster_0" args="0 0 0 -1.57 0 -1.57 base_link /camera_link 100" />
