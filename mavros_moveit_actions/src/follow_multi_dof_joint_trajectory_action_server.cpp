@@ -50,7 +50,6 @@
 
 #include <mavros_moveit_utils/utils.h>
 #include <mavros_moveit_actions/follow_multi_dof_joint_trajectory_action_server.h>
-#include <vfh3d/CorrectTarget.h>
 
 FollowMultiDofJointTrajectoryActionServer::FollowMultiDofJointTrajectoryActionServer(const std::string& name) : 
     action_name_(name), 
