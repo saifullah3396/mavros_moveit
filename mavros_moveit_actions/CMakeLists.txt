@@ -15,8 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
 	control_msgs
 	control_toolbox
 	mavros_moveit_controllers
-	mavros_moveit_utils
-	vfh3d)
+	mavros_moveit_utils)
 	
 find_package(Boost REQUIRED COMPONENTS system)
 add_action_files(
