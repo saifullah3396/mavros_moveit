@@ -38,7 +38,6 @@ source ~/catkin_ws/devel/setup.bash
 
 ### Test mavros_moveit
 
-```
 - Run px4, mavros moveit using the launch file. The example uses iris but can be updated for use with other vehicles:
 ```
 roslaunch mavros_moveit px4_mavros_moveit.launch
